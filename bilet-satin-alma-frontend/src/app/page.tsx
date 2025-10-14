@@ -1,103 +1,157 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { BusTrip } from '@/types/BusTrip';
+import { getBusTrips } from '@/services/busService';
+
+const cities = [
+  "İstanbul", "Ankara", "İzmir", "Bursa", "Antalya",
+  "Adana", "Konya", "Gaziantep", "Şanlıurfa", "Mersin"
+];
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const router = useRouter();
+  const [trips, setTrips] = useState<BusTrip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState('');
+  const [sortBy, setSortBy] = useState<'price' | 'time'>('time');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const loadTrips = async () => {
+      try {
+        const data = await getBusTrips();
+        setTrips(data);
+      } catch (error) {
+        console.error('Seferler yüklenirken hata:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTrips();
+  }, []);
+
+  const sortedTrips = [...trips].sort((a, b) => {
+    if (sortBy === 'price') {
+      return a.price - b.price;
+    }
+    return a.departureTime.localeCompare(b.departureTime);
+  });
+
+  const filteredTrips = date
+    ? sortedTrips.filter(trip => trip.departureDate === date)
+    : sortedTrips;
+
+  return (
+    <div className="min-h-screen p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-8 mb-12 text-white">
+          <h1 className="text-4xl font-bold mb-4">Otobüs Bileti Satın Al</h1>
+          <p className="text-lg opacity-90">Türkiye'nin her yerine güvenli ve konforlu yolculuk</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Tarihe Göre Filtrele
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="p-3 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Sırala
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'price' | 'time')}
+              className="p-3 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            >
+              <option value="time">Kalkış Saatine Göre</option>
+              <option value="price">Fiyata Göre</option>
+            </select>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Seferler yükleniyor...</p>
+          </div>
+        ) : filteredTrips.length === 0 ? (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900 rounded-lg p-4">
+            <p className="text-yellow-700 dark:text-yellow-500">Bu tarih için sefer bulunamadı.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {filteredTrips.map(trip => (
+              <div 
+                key={trip.id} 
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-center">
+                  <div>
+                    <h3 className="font-semibold text-lg dark:text-white">{trip.busCompany}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{trip.busType}</p>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="font-semibold dark:text-white">{trip.departureTime}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{trip.from}</div>
+                  </div>
+
+                  <div className="text-center flex items-center justify-center">
+                    <div className="w-full h-px bg-gray-300 dark:bg-gray-600 relative">
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 px-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="font-semibold dark:text-white">{trip.arrivalTime}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{trip.to}</div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {trip.price} TL
+                    </div>
+                    <button
+                      onClick={() => router.push(`/trips/${trip.id}`)}
+                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors dark:bg-blue-500 dark:hover:bg-blue-600"
+                    >
+                      Bileti Seç
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex flex-wrap gap-2">
+                    {trip.features.map((feature, index) => (
+                      <span 
+                        key={index}
+                        className="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
