@@ -22,12 +22,10 @@ export default function TripFilters({ onFilterChange }: TripFiltersProps) {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div>
-          <label className="block text-sm font-medium text-brand-neutral mb-2">
-            Tarihe Göre Filtrele
-          </label>
+    <div className="flex flex-col md:flex-row items-stretch gap-3">
+      <div className="flex-1 flex flex-col sm:flex-row gap-3">
+        <div className="flex-1">
+          <label className="sr-only">Tarihe Göre Filtrele</label>
           <input
             type="date"
             value={date}
@@ -36,24 +34,22 @@ export default function TripFilters({ onFilterChange }: TripFiltersProps) {
               handleFilterChange();
             }}
             min={new Date().toISOString().split('T')[0]}
-            className="px-4 py-2 bg-morphism-surface border border-morphism-border rounded-xl text-brand-neutral focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition-all duration-300"
+            className="w-full h-11 px-4 bg-morphism-surface border border-morphism-border rounded-xl text-brand-neutral focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition-all duration-300"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-brand-neutral mb-2">
-            Sırala
-          </label>
+        <div className="w-full sm:w-56">
+          <label className="sr-only">Sırala</label>
           <select
             value={sortBy}
             onChange={(e) => {
               setSortBy(e.target.value as 'price' | 'time');
               handleFilterChange();
             }}
-            className="px-4 py-2 bg-morphism-surface border border-morphism-border rounded-xl text-brand-neutral focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition-all duration-300"
+            className="w-full h-11 px-4 bg-morphism-surface border border-morphism-border rounded-xl text-brand-neutral focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition-all duration-300"
           >
-            <option value="time">Kalkış Saatine Göre</option>
-            <option value="price">Fiyata Göre</option>
+            <option value="time">Kalkış Saati</option>
+            <option value="price">Fiyat</option>
           </select>
         </div>
       </div>
@@ -61,6 +57,7 @@ export default function TripFilters({ onFilterChange }: TripFiltersProps) {
       <Button
         variant="ghost"
         size="sm"
+        className="h-11"
         onClick={() => {
           setDate('');
           setSortBy('time');

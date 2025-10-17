@@ -5,6 +5,7 @@ import { BusTrip } from '@/types/BusTrip';
 import { getBusTrips } from '@/services/busService';
 import TripCard from './TripCard';
 import TripFilters from './TripFilters';
+import Card from '@/components/ui/Card';
 
 export default function TripList() {
   const [trips, setTrips] = useState<BusTrip[]>([]);
@@ -26,24 +27,6 @@ export default function TripList() {
 
     loadTrips();
   }, []);
-
-  const handleFilterChange = (filters: { date?: string; sortBy?: 'price' | 'time' }) => {
-    let filtered = [...trips];
-
-    // Tarih filtresi
-    if (filters.date) {
-      filtered = filtered.filter(trip => trip.departureDate === filters.date);
-    }
-
-    // Sıralama
-    if (filters.sortBy === 'price') {
-      filtered.sort((a, b) => a.price - b.price);
-    } else {
-      filtered.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
-    }
-
-    setFilteredTrips(filtered);
-  };
 
   if (loading) {
     return (
@@ -69,16 +52,8 @@ export default function TripList() {
   }
 
   return (
-    <section className="section-spacing">
+    <section className="py-8">
       <div className="container-minimal">
-        <div className="text-center mb-12">
-          <h2 className="text-section mb-4">Popüler Seferler</h2>
-          <p className="text-body max-w-2xl mx-auto">
-            En çok tercih edilen rotalarda güncel sefer bilgilerini görüntüleyin
-          </p>
-        </div>
-
-        <TripFilters onFilterChange={handleFilterChange} />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredTrips.map(trip => (
@@ -86,13 +61,10 @@ export default function TripList() {
           ))}
         </div>
 
-        <div className="text-center mt-12">
-          <p className="text-brand-neutral/70 mb-4">
-            {filteredTrips.length} sefer gösteriliyor
+        <div className="text-center mt-8">
+          <p className="text-brand-neutral/70">
+            {filteredTrips.length} büyülü yolculuk bulundu.
           </p>
-          <button className="px-6 py-3 bg-morphism-surface border border-morphism-border rounded-xl text-brand-neutral hover:border-brand-primary/30 transition-all duration-300">
-            Daha Fazla Sefer Gör
-          </button>
         </div>
       </div>
     </section>

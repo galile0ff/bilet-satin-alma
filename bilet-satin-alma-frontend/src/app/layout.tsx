@@ -7,8 +7,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Otobüs Bileti Satın Al',
-  description: 'Türkiye\'nin her yerine otobüs bileti satın alabileceğiniz platform',
+  title: 'galileoff. Bilet Satın Alma',
+  description: 'Orta Dünya\'nn her yerine güvenle otobüs bileti satın alabileceğiniz platform',
 };
 
 export default function RootLayout({

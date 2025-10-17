@@ -52,7 +52,7 @@ export default function TripCard({ trip, onSelectTrip }: TripCardProps) {
               size="sm"
               onClick={() => onSelectTrip(trip)}
             >
-              Koltuk Seç
+              Bilet Al
             </Button>
             <Link href={`/trips/${trip.id}`}>
               <Button variant="ghost" size="sm">

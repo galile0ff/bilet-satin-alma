@@ -59,7 +59,6 @@ export default function Footer() {
               Hizmetler
             </h3>
             <ul className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <li><a href="/" className="hover:text-[var(--secondary)] transition-colors duration-200">Bilet Sorgulama</a></li>
               <li><a href="/trips" className="hover:text-[var(--secondary)] transition-colors duration-200">Tüm Seferler</a></li>
               <li><a href="/my-tickets" className="hover:text-[var(--secondary)] transition-colors duration-200">Biletlerim</a></li>
               <li><a href="/campaigns" className="hover:text-[var(--secondary)] transition-colors duration-200">Güncel Kampanyalar</a></li>

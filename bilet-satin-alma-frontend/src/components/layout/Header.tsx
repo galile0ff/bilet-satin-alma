@@ -4,9 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { clsx } from 'clsx'; // Class'ları koşullu birleştirmek için yardımcı kütüphane
 
-// --- İkonları Ayrı Bileşenler Haline Getirelim ---
-// Bu, ana bileşenin daha okunaklı olmasını sağlar.
-
 const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M20 8h-7m0 0H6.5a2.5 2.5 0 0 0 0 5H13m7-5-2 5m2-5 2 5m-2-5v5m-7 0h6.5a2.5 2.5 0 0 0 0-5H13m0 5H6.5m0 0-2 5m2-5-2-5m2 5v5" />
@@ -16,7 +13,6 @@ const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
 // --- Navigasyon Linklerini Tek Bir Yerde Tanımlayalım ---
 // Bu, kod tekrarını önler (DRY Prensibi)
 const navLinks = [
-  { href: '/', label: 'Bilet Sorgulama' },
   { href: '/trips', label: 'Tüm Seferler' },
   { href: '/my-tickets', label: 'Biletlerim' },
   { href: '/campaigns', label: 'Güncel Kampanyalar' },
@@ -27,7 +23,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const checkScroll = () => setIsScrolled(window.scrollY > 50); // Daha belirgin olması için 0'dan 50'ye çektik
+    const checkScroll = () => setIsScrolled(window.scrollY > 50);
     checkScroll();
     window.addEventListener('scroll', checkScroll, { passive: true }); // Performans için
     return () => window.removeEventListener('scroll', checkScroll);

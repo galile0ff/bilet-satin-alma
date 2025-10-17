@@ -10,7 +10,7 @@ module.exports = {
       colors: {
         background: 'rgb(var(--background-rgb))',
         foreground: 'rgb(var(--foreground-rgb))',
-        // Marka Renkleri - Kolay kontrol edilebilir
+        // Marka Renkleri
         brand: {
           primary: '#5EC576',    // Ana yeşil
           secondary: '#A8E6CF',  // Açık yeşil
@@ -18,7 +18,7 @@ module.exports = {
           neutral: '#2F3E46',    // Koyu gri
           light: '#F7FDF9',      // Çok açık yeşil-beyaz
         },
-        // Minimalism ve Morphism için ek renkler
+        // ek renkler
         morphism: {
           surface: 'rgba(255, 255, 255, 0.8)',
           shadow: 'rgba(0, 0, 0, 0.1)',
