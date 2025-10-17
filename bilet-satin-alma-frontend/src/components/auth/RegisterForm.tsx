@@ -4,16 +4,19 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { register } from '@/services/busService';
+import { useRouter } from 'next/navigation';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
-    name: '',
+    full_name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,12 +30,12 @@ export default function RegisterForm() {
     setError('');
 
     try {
-      // Register işlemi burada yapılacak
-      console.log('Kayıt yapılıyor:', formData);
-      // Simülasyon için
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch (err) {
-      setError('Kayıt olurken bir hata oluştu');
+      const { confirmPassword, ...registerData } = formData;
+      const response = await register(registerData);
+      console.log('Registration successful:', response);
+      router.push('/login');
+    } catch (err: any) {
+      setError(err.message || 'Kayıt olurken bir hata oluştu');
     } finally {
       setLoading(false);
     }
@@ -50,8 +53,8 @@ export default function RegisterForm() {
         <Input
           label="Ad Soyad"
           type="text"
-          value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          value={formData.full_name}
+          onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
           placeholder="Adınızı öğrenebilir miyim?"
           required
         />

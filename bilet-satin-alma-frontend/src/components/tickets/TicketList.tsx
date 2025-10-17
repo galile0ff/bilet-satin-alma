@@ -55,6 +55,10 @@ export default function TicketList() {
     );
   }
 
+  const handleTicketDeleted = (ticketId: string) => {
+    setTickets(tickets.filter(ticket => ticket.id !== ticketId));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -66,7 +70,7 @@ export default function TicketList() {
 
       <div className="space-y-4">
         {tickets.map(ticket => (
-          <TicketCard key={ticket.id} ticket={ticket} />
+          <TicketCard key={ticket.id} ticket={ticket} onTicketDeleted={handleTicketDeleted} />
         ))}
       </div>
     </div>

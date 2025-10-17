@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { login as loginService } from '@/services/busService';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -12,6 +15,8 @@ export default function LoginForm() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,12 +24,12 @@ export default function LoginForm() {
     setError('');
 
     try {
-      // Login işlemi burada yapılacak
-      console.log('Giriş yapılıyor:', formData);
-      // Simülasyon için
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch (err) {
-      setError('Giriş yapılırken bir hata oluştu');
+      const response = await loginService(formData);
+      login(response.user);
+      router.push('/my-account');
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || 'Giriş yapılırken bir hata oluştu');
     } finally {
       setLoading(false);
     }

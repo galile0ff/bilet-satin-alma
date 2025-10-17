@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import Navigation from './Navigation';
-import AuthButtons from './AuthButtons';
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,7 +40,6 @@ export default function MobileMenu() {
       )}>
         <div className="container-minimal">
           <Navigation mobile onLinkClick={() => setIsOpen(false)} />
-          <AuthButtons mobile onLinkClick={() => setIsOpen(false)} />
         </div>
       </div>
     </>

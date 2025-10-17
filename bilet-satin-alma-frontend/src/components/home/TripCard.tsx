@@ -63,15 +63,10 @@ export default function TripCard({ trip }: TripCardProps) {
         )}
       </div>
 
-      <div className="flex gap-3">
-        <Link href={`/trips/${trip.id}`} className="flex-1">
-          <Button variant="primary" size="sm" className="w-full">
-            Detaylar
-          </Button>
-        </Link>
-        <Link href={`/trips/${trip.id}`} className="flex-1">
-          <Button variant="secondary" size="sm" className="w-full">
-            Bilet Al
+      <div className="mt-6">
+        <Link href={`/trips?tripId=${trip.id}`} className="w-full">
+          <Button variant="primary" size="lg" className="w-full">
+            Koltuk Seç
           </Button>
         </Link>
       </div>

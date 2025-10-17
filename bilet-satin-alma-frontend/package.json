@@ -4,12 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "start:backend": "php -S localhost:8000 -t ../bilet-satin-alma-backend/public",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
+    "lucide-react": "^0.546.0",
     "next": "^14.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { clsx } from 'clsx'; // Class'ları koşullu birleştirmek için yardımcı kütüphane
+import { clsx } from 'clsx';
+import { useAuth } from '@/context/AuthContext';
+import { FaUserCircle } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" {...props}>
@@ -10,8 +13,6 @@ const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// --- Navigasyon Linklerini Tek Bir Yerde Tanımlayalım ---
-// Bu, kod tekrarını önler (DRY Prensibi)
 const navLinks = [
   { href: '/trips', label: 'Tüm Seferler' },
   { href: '/my-tickets', label: 'Biletlerim' },
@@ -21,13 +22,21 @@ const navLinks = [
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const checkScroll = () => setIsScrolled(window.scrollY > 50);
     checkScroll();
-    window.addEventListener('scroll', checkScroll, { passive: true }); // Performans için
+    window.addEventListener('scroll', checkScroll, { passive: true });
     return () => window.removeEventListener('scroll', checkScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+    router.refresh();
+  };
 
   const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
     <Link
@@ -41,31 +50,26 @@ export default function Header() {
 
   return (
     <>
-      {/* Header'ın kapladığı alan için placeholder */}
       <div className="h-20" />
-
-      {/* Header */}
       <header className={clsx(
-        "fixed w-full top-0 z-50 transition-all duration-300 ease-in-out",
+        'fixed w-full top-0 z-50 transition-all duration-300 ease-in-out',
         {
           'bg-white/80 backdrop-blur-lg shadow-md': isScrolled,
-          'bg-transparent': !isScrolled
+          'bg-transparent': !isScrolled,
         }
       )}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <nav className="flex justify-between items-center h-20">
-            {/* Logo ve Sol Menü */}
             <div className="flex items-center space-x-8">
               <Link href="/" className="flex items-center space-x-2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg">
                 <LogoIcon className={clsx(
-                  "h-8 w-8 text-[var(--primary)] group-hover:text-[var(--secondary)] transition-all duration-300 ease-in-out",
+                  'h-8 w-8 text-[var(--primary)] group-hover:text-[var(--secondary)] transition-all duration-300 ease-in-out',
                   { 'scale-90': isScrolled, 'scale-100': !isScrolled }
                 )} />
                 <span className="text-xl font-bold text-[var(--text-light)] group-hover:text-[var(--primary)] tracking-tighter transition-colors duration-300">
                   galileoff.
                 </span>
               </Link>
-              {/* Ana Menü - Desktop */}
               <div className="hidden md:flex items-center space-x-8">
                 {navLinks.map((link) => (
                   <NavLink key={link.href} href={link.href}>
@@ -75,18 +79,27 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Sağ Menü ve Butonlar */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Kullanıcı Menüsü - Desktop */}
-              <div className="hidden md:flex items-center space-x-2">
-                <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-300">
-                  Giriş Yap
-                </Link>
-                <Link href="/register" className="px-4 py-2 text-sm font-medium bg-[var(--primary)] hover:bg-[var(--secondary)] text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5">
-                  Üye Ol
-                </Link>
-              </div>
-              {/* Mobil Menü Butonu (Animasyonlu) */}
+              {!user ? (
+                <div className="hidden md:flex items-center space-x-2">
+                  <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-300">
+                    Giriş Yap
+                  </Link>
+                  <Link href="/register" className="px-4 py-2 text-sm font-medium bg-[var(--primary)] hover:bg-[var(--secondary)] text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5">
+                    Üye Ol
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-4">
+                    <Link href="/my-account" className="p-2 rounded-full text-gray-700 hover:bg-gray-200 hover:text-[var(--primary)] transition-colors duration-300" aria-label="Hesabım">
+                        <FaUserCircle className="w-6 h-6" />
+                    </Link>
+                    <button onClick={handleLogout} className="px-4 py-2 text-sm font-medium bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5">
+                        Çıkış Yap
+                    </button>
+                </div>
+              )}
+
               <div className="md:hidden">
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -95,29 +108,27 @@ export default function Header() {
                   aria-expanded={isMenuOpen}
                 >
                   <div className="w-6 h-6 flex flex-col justify-center items-center">
-                    <span className={clsx(
-                      'block w-6 h-0.5 bg-gray-800 transition-transform duration-300 ease-in-out',
-                      { 'rotate-45 translate-y-[3px]': isMenuOpen, '-translate-y-1': !isMenuOpen }
-                    )}></span>
-                    <span className={clsx(
-                      'block w-6 h-0.5 bg-gray-800 mt-1 transition-opacity duration-300 ease-in-out',
-                      { 'opacity-0': isMenuOpen }
-                    )}></span>
-                    <span className={clsx(
-                      'block w-6 h-0.5 bg-gray-800 mt-1 transition-transform duration-300 ease-in-out',
-                      { '-rotate-45 -translate-y-[9px]': isMenuOpen, 'translate-y-1': !isMenuOpen }
-                    )}></span>
+                    <span className={clsx('block w-6 h-0.5 bg-gray-800 transition-transform duration-300 ease-in-out', {
+                      'rotate-45 translate-y-[3px]': isMenuOpen,
+                      '-translate-y-1': !isMenuOpen,
+                    })}></span>
+                    <span className={clsx('block w-6 h-0.5 bg-gray-800 mt-1 transition-opacity duration-300 ease-in-out', {
+                      'opacity-0': isMenuOpen,
+                    })}></span>
+                    <span className={clsx('block w-6 h-0.5 bg-gray-800 mt-1 transition-transform duration-300 ease-in-out', {
+                      '-rotate-45 -translate-y-[9px]': isMenuOpen,
+                      'translate-y-1': !isMenuOpen,
+                    })}></span>
                   </div>
                 </button>
               </div>
             </div>
           </nav>
 
-          {/* Mobil Menü (Aşağı kayarak açılan animasyonlu) */}
-          <div className={clsx(
-            "md:hidden overflow-hidden transition-all duration-500 ease-in-out",
-            { 'max-h-screen py-4': isMenuOpen, 'max-h-0': !isMenuOpen }
-          )}>
+          <div className={clsx('md:hidden overflow-hidden transition-all duration-500 ease-in-out', {
+            'max-h-screen py-4': isMenuOpen,
+            'max-h-0': !isMenuOpen,
+          })}>
             <div className="flex flex-col space-y-2 border-t border-gray-200 pt-4">
               {navLinks.map((link) => (
                 <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
@@ -125,14 +136,26 @@ export default function Header() {
                 </Link>
               ))}
               <div className="border-t border-gray-200 my-2"></div>
-              <div className="flex items-center justify-center space-x-4 pt-2">
-                 <Link href="/login" onClick={() => setIsMenuOpen(false)} className="flex-1 text-center px-4 py-3 text-base font-medium text-gray-700 bg-gray-100 rounded-lg transition-colors">
-                  Giriş Yap
-                </Link>
-                <Link href="/register" onClick={() => setIsMenuOpen(false)} className="flex-1 text-center px-4 py-3 text-base font-medium bg-[var(--primary)] hover:bg-[var(--secondary)] text-white rounded-lg transition-colors">
-                  Üye Ol
-                </Link>
-              </div>
+              {!user ? (
+                <div className="flex items-center justify-center space-x-4 pt-2">
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)} className="flex-1 text-center px-4 py-3 text-base font-medium text-gray-700 bg-gray-100 rounded-lg transition-colors">
+                    Giriş Yap
+                  </Link>
+                  <Link href="/register" onClick={() => setIsMenuOpen(false)} className="flex-1 text-center px-4 py-3 text-base font-medium bg-[var(--primary)] hover:bg-[var(--secondary)] text-white rounded-lg transition-colors">
+                    Üye Ol
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center space-y-2 py-3">
+                  <Link href="/my-account" onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 px-4 py-2 text-base font-medium text-gray-700 bg-gray-100 rounded-lg">
+                    <FaUserCircle className="w-5 h-5" />
+                    <span>Hesabım</span>
+                  </Link>
+                  <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="w-full px-4 py-3 text-base font-medium text-red-600 bg-red-50 rounded-lg">
+                    Çıkış Yap
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

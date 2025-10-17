@@ -49,16 +49,12 @@ export default function TripCard({ trip, onSelectTrip }: TripCardProps) {
           <div className="flex gap-2">
             <Button
               variant="primary"
-              size="sm"
+              size="lg"
+              className="w-full"
               onClick={() => onSelectTrip(trip)}
             >
-              Bilet Al
+              Koltuk Seç
             </Button>
-            <Link href={`/trips/${trip.id}`}>
-              <Button variant="ghost" size="sm">
-                Detay
-              </Button>
-            </Link>
           </div>
         </div>
       </div>

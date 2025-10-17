@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { BusTrip } from '@/types/BusTrip';
-import { getBusTrips } from '@/services/busService';
+import { getTrips } from '@/services/busService';
 import TripCard from './TripCard';
 import TripFilters from './TripFilters';
 import Card from '@/components/ui/Card';
@@ -15,7 +15,7 @@ export default function TripList() {
   useEffect(() => {
     const loadTrips = async () => {
       try {
-        const data = await getBusTrips();
+        const data = await getTrips();
         setTrips(data);
         setFilteredTrips(data);
       } catch (error) {

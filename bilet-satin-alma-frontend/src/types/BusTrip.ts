@@ -1,5 +1,5 @@
 export interface BusTrip {
-    id: number;
+    id: string;
     from: string;
     to: string;
     departureDate: string;
@@ -13,17 +13,16 @@ export interface BusTrip {
 }
 
 export interface Ticket {
-    id: number;
-    tripId: number;
-    from: string;
-    to: string;
-    departureDate: string;
-    departureTime: string;
-    arrivalTime: string;
-    busCompany: string;
-    seatNumber: number;
-    price: number;
-    passengerName: string;
-    passengerTC: string;
-    purchaseDate: string;
+    id: string;
+    trip_id: string;
+    user_id: string;
+    status: string;
+    total_price: number;
+    created_at: string;
+    departure_city: string;
+    destination_city: string;
+    departure_time: string;
+    arrival_time: string;
+    company_name: string;
+    seat_number: number;
 }
