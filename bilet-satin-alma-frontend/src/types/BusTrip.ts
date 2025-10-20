@@ -7,7 +7,8 @@ export interface BusTrip {
     arrivalTime: string;
     busCompany: string;
     price: number;
-    availableSeats: number[];
+    bookedSeats: number[];
+    capacity: number;
     busType: string; // "2+1" | "2+2"
     features: string[]; // ["Wifi", "USB", "TV", etc.]
 }

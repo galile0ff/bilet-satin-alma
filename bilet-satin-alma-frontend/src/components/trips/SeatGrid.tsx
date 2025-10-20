@@ -10,24 +10,24 @@ interface SeatGridProps {
 
 export default function SeatGrid({ trip, selectedSeat, onSeatSelect }: SeatGridProps) {
   const createSeatPlan = () => {
-    const rows = 13;
     const seats = [];
-    const is2plus1 = trip.busType === "2+2";
+    const is2plus1 = trip.busType !== "2+2"; // Assuming 2+1 is default
+    const seatsPerRow = is2plus1 ? 3 : 4;
+    const rows = Math.ceil(trip.capacity / seatsPerRow);
 
+    let seatCounter = 1;
     for (let row = 1; row <= rows; row++) {
       if (is2plus1) {
-        // 2+1 düzeni
-        seats.push(row * 3 - 2); // Sol
-        seats.push(row * 3 - 1); // Sol orta
-        seats.push(null); // Koridor
-        seats.push(row * 3); // Sağ
-      } else {
-        // 2+2 düzeni
-        seats.push(row * 4 - 3); // Sol
-        seats.push(row * 4 - 2); // Sol orta
-        seats.push(null); // Koridor
-        seats.push(row * 4 - 1); // Sağ orta
-        seats.push(row * 4); // Sağ
+        if (seatCounter <= trip.capacity) seats.push(seatCounter++);
+        if (seatCounter <= trip.capacity) seats.push(seatCounter++);
+        seats.push(null); // Aisle
+        if (seatCounter <= trip.capacity) seats.push(seatCounter++);
+      } else { // 2+2
+        if (seatCounter <= trip.capacity) seats.push(seatCounter++);
+        if (seatCounter <= trip.capacity) seats.push(seatCounter++);
+        seats.push(null); // Aisle
+        if (seatCounter <= trip.capacity) seats.push(seatCounter++);
+        if (seatCounter <= trip.capacity) seats.push(seatCounter++);
       }
     }
     return seats;
@@ -65,17 +65,17 @@ export default function SeatGrid({ trip, selectedSeat, onSeatSelect }: SeatGridP
               return <div key={`space-${index}`} className="w-8 h-8" />;
             }
 
-            const isAvailable = trip.availableSeats.includes(seatNumber);
+            const isBooked = trip.bookedSeats.includes(seatNumber);
             const isSelected = selectedSeat === seatNumber;
 
             return (
               <button
                 key={seatNumber}
-                disabled={!isAvailable}
+                disabled={isBooked}
                 onClick={() => onSeatSelect(seatNumber)}
                 className={`
                   w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-300
-                  ${!isAvailable
+                  ${isBooked
                     ? 'bg-gray-800 cursor-not-allowed text-gray-400'
                     : isSelected
                     ? 'bg-brand-primary text-white shadow-lg transform scale-110'

@@ -14,9 +14,9 @@ const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const navLinks = [
-  { href: '/trips', label: 'Tüm Seferler' },
-  { href: '/my-tickets', label: 'Biletlerim' },
-  { href: '/campaigns', label: 'Güncel Kampanyalar' },
+  { href: '/trips', label: 'Tüm Seferler', roles: ['user', 'guest', 'company'] },
+  { href: '/my-tickets', label: 'Biletlerim', roles: ['user'] },
+  { href: '/campaigns', label: 'Güncel Kampanyalar', roles: ['user', 'guest'] },
 ];
 
 export default function Header() {
@@ -71,7 +71,7 @@ export default function Header() {
                 </span>
               </Link>
               <div className="hidden md:flex items-center space-x-8">
-                {navLinks.map((link) => (
+                {navLinks.filter(link => !link.roles || link.roles.includes(user?.role || 'guest')).map((link) => (
                   <NavLink key={link.href} href={link.href}>
                     {link.label}
                   </NavLink>
@@ -91,7 +91,7 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
-                    <Link href="/my-account" className="p-2 rounded-full text-gray-700 hover:bg-gray-200 hover:text-[var(--primary)] transition-colors duration-300" aria-label="Hesabım">
+                    <Link href={user.role === 'company' ? "/company" : "/my-account"} className="p-2 rounded-full text-gray-700 hover:bg-gray-200 hover:text-[var(--primary)] transition-colors duration-300" aria-label="Hesabım">
                         <FaUserCircle className="w-6 h-6" />
                     </Link>
                     <button onClick={handleLogout} className="px-4 py-2 text-sm font-medium bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5">
@@ -130,7 +130,7 @@ export default function Header() {
             'max-h-0': !isMenuOpen,
           })}>
             <div className="flex flex-col space-y-2 border-t border-gray-200 pt-4">
-              {navLinks.map((link) => (
+              {navLinks.filter(link => !link.roles || link.roles.includes(user?.role || 'guest')).map((link) => (
                 <Link key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)} className="px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
                   {link.label}
                 </Link>
@@ -147,9 +147,9 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center space-y-2 py-3">
-                  <Link href="/my-account" onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 px-4 py-2 text-base font-medium text-gray-700 bg-gray-100 rounded-lg">
+                  <Link href={user.role === 'company' ? "/company" : "/my-account"} onClick={() => setIsMenuOpen(false)} className="flex items-center space-x-2 px-4 py-2 text-base font-medium text-gray-700 bg-gray-100 rounded-lg">
                     <FaUserCircle className="w-5 h-5" />
-                    <span>Hesabım</span>
+                    <span>{user.role === 'company' ? 'Firma Paneli' : 'Hesabım'}</span>
                   </Link>
                   <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="w-full px-4 py-3 text-base font-medium text-red-600 bg-red-50 rounded-lg">
                     Çıkış Yap

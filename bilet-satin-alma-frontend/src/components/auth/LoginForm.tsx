@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { login as loginService } from '@/services/busService';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation'; // useSearchParams eklendi
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginForm() {
@@ -15,8 +15,19 @@ export default function LoginForm() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
   const router = useRouter();
+  const searchParams = useSearchParams(); // URL sorgu parametrelerini almak için hook
   const { login } = useAuth();
+  
+  // URL'den 'redirect' parametresini oku
+  const redirectPath = searchParams.get('redirect'); 
+  // Eğer redirect parametresi yoksa varsayılan hedef
+  const defaultRedirect = '/my-account'; 
+  
+  // user objesinin dolmasını (giriş yapılmasını) bekleyen bir useEffect kullanabiliriz.
+  // Veya, handleSubmit içinde yönlendirmeyi doğrudan yapabiliriz.
+  // Bu örnekte, handleSubmit içindeki yönlendirmeyi değiştiriyoruz.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +37,17 @@ export default function LoginForm() {
     try {
       const response = await loginService(formData);
       login(response.user);
-      router.push('/my-account');
-      router.refresh();
+      
+      if (response.user.role === 'company') {
+        router.push('/company');
+      } else {
+        const targetPath = redirectPath || defaultRedirect;
+        router.push(targetPath);
+      }
+      
+      // Sayfayı tamamen yenilemek yerine, sadece hedef sayfaya yönlendirme yeterli olacaktır.
+      // router.refresh(); // Genellikle bu noktada gerekmez
+
     } catch (err: any) {
       setError(err.message || 'Giriş yapılırken bir hata oluştu');
     } finally {

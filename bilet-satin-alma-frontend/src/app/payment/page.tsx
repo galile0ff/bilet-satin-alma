@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getTrips, purchaseTicket } from '@/services/busService';
 import { BusTrip } from '@/types/BusTrip';
 import Button from '@/components/ui/Button';
+import NotificationModal from '@/components/ui/NotificationModal';
 
 // ----------------------------------------------------------------------
 // TYPESCRIPT: DetailItem Bileşeni için Prop Tanımı
@@ -40,6 +41,10 @@ export default function PaymentPage() {
     const searchParams = useSearchParams();
     const [trip, setTrip] = useState<BusTrip | null>(null);
     const [seat, setSeat] = useState<number | null>(null);
+    const [couponCode, setCouponCode] = useState('');
+    const [finalPrice, setFinalPrice] = useState<number | null>(null);
+    const [discount, setDiscount] = useState<number>(0);
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     // Kullanıcı girişi kontrolü
     useEffect(() => {
@@ -56,7 +61,10 @@ export default function PaymentPage() {
             setSeat(Number(seatNumber));
             getTrips().then(trips => {
                 const foundTrip = trips.find(t => t.id === tripId);
-                setTrip(foundTrip || null);
+                if (foundTrip) {
+                    setTrip(foundTrip);
+                    setFinalPrice(foundTrip.price);
+                }
             });
         }
     }, [searchParams]);
@@ -82,29 +90,67 @@ export default function PaymentPage() {
     }
 
     // Bakiye kontrolü
-    const isBalanceSufficient = user.balance >= trip.price;
-    const missingAmount = trip.price - user.balance;
+    const priceToPay = finalPrice ?? trip.price;
+    const isBalanceSufficient = user.balance >= priceToPay;
+    const missingAmount = priceToPay - user.balance;
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) {
+            setNotification({ message: 'Lütfen bir kupon kodu girin.', type: 'error' });
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8000/api/coupons/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user?.id}`,
+                },
+                body: JSON.stringify({ coupon_code: couponCode, trip_id: trip?.id }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                const discountAmount = (trip.price * data.discount_rate) / 100;
+                setDiscount(discountAmount);
+                setFinalPrice(trip.price - discountAmount);
+                setNotification({ message: 'İndirim kuponun başarıyla kullanıldı! Altın kesen hafifledi 🫵🏼', type: 'success' });
+            } else {
+                throw new Error(data.message || 'Sakin ol seni sahtekar, bu kupon geçersiz.');
+            }
+        } catch (error: any) {
+            setDiscount(0);
+            setFinalPrice(trip.price);
+            setNotification({ message: error.message, type: 'error' });
+        }
+    };
 
     const handlePurchase = async () => {
         if (!trip || seat === null) {
-            alert('Sefer veya koltuk bilgisi eksik.');
+            setNotification({ message: 'Sefer veya koltuk bilgisi eksik.', type: 'error' });
             return;
         }
 
         try {
-            const result = await purchaseTicket(trip.id, seat);
-            alert(result.message);
+            const result = await purchaseTicket(trip.id, seat, discount > 0 ? couponCode : undefined);
+            setNotification({ message: result.message, type: 'success' });
             if (result.user) {
-                updateUser(result.user); // Update user context with new balance
+                updateUser(result.user);
             }
-            router.push('/my-tickets');
+            setTimeout(() => router.push('/my-tickets'), 2000);
         } catch (error: any) {
-            alert(`Hata: ${error.message}`);
+            setNotification({ message: `Hata: ${error.message}`, type: 'error' });
         }
     };
 
     return (
         <div className="container-minimal section-spacing bg-gray-50/50 min-h-screen-minus-header">
+            {notification && (
+                <NotificationModal
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
             <h1 className="text-4xl font-extrabold mb-4 text-gray-900">Fatura Bilgisi: Yolculuk Onayı</h1>
             <p className="text-gray-600 mb-8">Bu yolculuğa çıkmadan önceki son adımlarınız.</p>
             
@@ -142,9 +188,26 @@ export default function PaymentPage() {
                             Fatura Özeti
                         </h2>
                         <div className="space-y-3 pt-2">
-                            <div className="flex justify-between items-center pt-4">
+                            {/* Kupon Kodu Alanı */}
+                            <div className="flex items-center gap-2 pt-2">
+                                <input
+                                    type="text"
+                                    placeholder="İndirim Kuponu"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                    className="flex-grow p-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition"
+                                />
+                                <Button onClick={handleApplyCoupon} variant="secondary" className="h-full">Uygula</Button>
+                            </div>
+
+                            {/* Fiyat Detayları */}
+                            <DetailItem title="Bilet Fiyatı" value={`${trip.price.toFixed(2)} TL`} />
+                            {discount > 0 && (
+                                <DetailItem title="Kupon İndirimi" value={`- ${discount.toFixed(2)} TL`} isHighlighted />
+                            )}
+                            <div className="flex justify-between items-center pt-4 border-t-2 border-dashed mt-4">
                                 <span className="text-2xl font-extrabold text-gray-900">TOPLAM ÖDEME</span>
-                                <span className="text-4xl font-black text-brand-primary tracking-tight">{trip.price} TL</span>
+                                <span className="text-4xl font-black text-brand-primary tracking-tight">{priceToPay.toFixed(2)} TL</span>
                             </div>
                         </div>
                     </div>
@@ -162,7 +225,7 @@ export default function PaymentPage() {
                             </div>
                             <div className="flex justify-between items-center text-lg pt-2">
                                 <span className="text-gray-700">Gerekli Altın:</span>
-                                <span className="font-bold text-red-600 text-xl">{trip.price} TL</span>
+                                <span className="font-bold text-red-600 text-xl">{priceToPay.toFixed(2)} TL</span>
                             </div>
                         </div>
                         

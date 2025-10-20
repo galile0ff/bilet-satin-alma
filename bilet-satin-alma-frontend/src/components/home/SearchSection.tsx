@@ -1,25 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
-const cities = [
-  "İstanbul", "Ankara", "İzmir", "Bursa", "Antalya",
-  "Adana", "Konya", "Gaziantep", "Şanlıurfa", "Mersin"
-];
-
 export default function SearchSection() {
+  const [cities, setCities] = useState<string[]>([]);
   const router = useRouter();
   const [searchData, setSearchData] = useState({
     from: '',
     to: ''
   });
 
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/cities');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setCities(data);
+      } catch (error) {
+        console.error("Failed to fetch cities:", error);
+      }
+    };
+
+    fetchCities();
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/trips');
+    const { from, to } = searchData;
+    const query = new URLSearchParams();
+    if (from) {
+      query.append('from', from);
+    }
+    if (to) {
+      query.append('to', to);
+    }
+    router.push(`/trips?${query.toString()}`);
   };
 
   return (

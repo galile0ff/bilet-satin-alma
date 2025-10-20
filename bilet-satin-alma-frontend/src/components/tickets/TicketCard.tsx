@@ -6,7 +6,7 @@ import html2canvas from 'html2canvas';
 
 interface TicketCardProps {
   ticket: Ticket;
-  onTicketDeleted: (ticketId: string) => void;
+  onTicketDeleted: (ticketId: string, updatedUser: any) => void;
 }
 
 export default function TicketCard({ ticket, onTicketDeleted }: TicketCardProps) {
@@ -54,11 +54,10 @@ export default function TicketCard({ ticket, onTicketDeleted }: TicketCardProps)
   const handleDelete = async () => {
     if (window.confirm('Bu bilet Orta Dünya\'dan silinecek, emin misin?')) {
       try {
-        await deleteTicket(ticket.id);
-        onTicketDeleted(ticket.id);
-      } catch (error) {
-        console.error('Bilet silinirken hata:', error);
-        alert('Bilet silinirken bir hata oluştu.');
+        const response = await deleteTicket(ticket.id);
+        onTicketDeleted(ticket.id, response.user);
+      } catch (error: any) {
+        alert(`Bilet silinirken bir hata oluştu: ${error.message}`);
       }
     }
   };

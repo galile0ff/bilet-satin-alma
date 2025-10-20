@@ -65,20 +65,28 @@ class Database {
             )',
             'CREATE TABLE IF NOT EXISTS "Coupons" (
                 "id" TEXT PRIMARY KEY,
+                "company_id" TEXT NOT NULL,
                 "code" TEXT NOT NULL,
-                "discount" REAL NOT NULL,
-                "company_id" TEXT,
+                "discount_rate" REAL NOT NULL,
                 "usage_limit" INTEGER NOT NULL,
-                "expire_date" TEXT NOT NULL,
+                "expiry_date" TEXT NOT NULL,
                 "created_at" TEXT NOT NULL,
                 FOREIGN KEY("company_id") REFERENCES "Bus_Company"("id")
             )',
-            'CREATE TABLE IF NOT EXISTS "User_Coupons" (
+            'CREATE TABLE IF NOT EXISTS "Coupon_Usage" (
                 "id" TEXT PRIMARY KEY,
                 "coupon_id" TEXT NOT NULL,
                 "user_id" TEXT NOT NULL,
-                "created_at" TEXT NOT NULL,
+                "used_at" TEXT NOT NULL,
                 FOREIGN KEY("coupon_id") REFERENCES "Coupons"("id"),
+                FOREIGN KEY("user_id") REFERENCES "User"("id")
+            )',
+            'CREATE TABLE IF NOT EXISTS "Notifications" (
+                "id" TEXT PRIMARY KEY,
+                "user_id" TEXT NOT NULL,
+                "message" TEXT NOT NULL,
+                "is_read" INTEGER DEFAULT 0,
+                "created_at" TEXT NOT NULL,
                 FOREIGN KEY("user_id") REFERENCES "User"("id")
             )'
         ];

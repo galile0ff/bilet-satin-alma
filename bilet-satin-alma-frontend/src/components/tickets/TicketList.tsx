@@ -4,12 +4,19 @@ import { useState, useEffect } from 'react';
 import { Ticket } from '@/types/BusTrip';
 import { getMyTickets } from '@/services/busService';
 import TicketCard from './TicketCard';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function TicketList() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user, setUser } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
+    if (user?.role === 'company') {
+      router.push('/company');
+    }
     const loadTickets = async () => {
       try {
         const data = await getMyTickets();
@@ -41,7 +48,7 @@ export default function TicketList() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-brand-neutral mb-2">Henüz Biletiniz Yok</h3>
+        <h3 className="text-lg font-semibold text-brand-neutral mb-2">Henüz Seyehat Etmemişsiniz</h3>
         <p className="text-brand-neutral/70 mb-6">
           İlk biletinizi satın almak için sefer aramaya başlayın.
         </p>
@@ -55,8 +62,9 @@ export default function TicketList() {
     );
   }
 
-  const handleTicketDeleted = (ticketId: string) => {
+  const handleTicketDeleted = (ticketId: string, updatedUser: any) => {
     setTickets(tickets.filter(ticket => ticket.id !== ticketId));
+    setUser(updatedUser);
   };
 
   return (

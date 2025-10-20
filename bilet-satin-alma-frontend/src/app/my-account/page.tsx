@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { getMyTickets, updateUser, cancelTicket, updateBalance } from '@/services/busService';
+import { getMyTickets, updateUser, updateBalance } from '@/services/busService';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import TicketCard from '@/components/tickets/TicketCard';
@@ -22,6 +22,8 @@ export default function MyAccountPage() {
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
+    } else if (user?.role === 'company') {
+      router.push('/company');
     }
   }, [user, loading, router]);
 
@@ -43,30 +45,23 @@ export default function MyAccountPage() {
 
   const handleUpdateName = async () => {
     if (!fullName.trim()) {
-      console.error('Adınız boş olamaz!');
+      alert('Adınız boş olamaz!');
       return;
     }
     try {
       await updateUser({ full_name: fullName });
-      // Context'i de güncelleyerek anında UI'a yansımasını sağla
       if (user) {
         updateUserContext({ ...user, full_name: fullName });
       }
       setIsEditing(false);
-    } catch (error) {
-      console.error('Adını güncelleyemedik:', error);
+    } catch (error: any) {
+      alert(`Adını güncellerken bir hata oluştu: ${error.message}`);
     }
   };
 
-  const handleCancelTicket = async (ticketId: string) => {
-    if (confirm('Bu yolculuktan vazgeçmek istediğinizden emin misin gezgin?')) {
-      try {
-        await cancelTicket(ticketId);
-        fetchTickets(); // Bilet listesini yenile
-      } catch (error) {
-        console.error('Biletini iptal edemedik:', error);
-      }
-    }
+  const handleTicketDeleted = (ticketId: string, updatedUser: any) => {
+    updateUserContext(updatedUser);
+    setTickets(prevTickets => prevTickets.filter(ticket => ticket.id !== ticketId));
   };
   
   // Bakiye kutucuğu sorununu çözen fonksiyon
@@ -83,7 +78,7 @@ export default function MyAccountPage() {
     const amount = parseInt(balanceToAdd, 10) || 0; 
     
     if (amount <= 0) {
-      console.error('Lütfen geçerli bir bakiye miktarı girin.');
+      alert('Lütfen geçerli bir bakiye miktarı girin.');
       return;
     }
 
@@ -92,8 +87,8 @@ export default function MyAccountPage() {
       updateUserContext(response.user);
       setIsAddingBalance(false);
       setBalanceToAdd(''); // Kutucuğu temizle
-    } catch (error) {
-      console.error('Bakiyeni güncelleyemedik:', error);
+    } catch (error: any) {
+      alert(`Bakiyeni güncellerken bir hata oluştu: ${error.message}`);
     }
   };
 
@@ -207,7 +202,7 @@ export default function MyAccountPage() {
                 <TicketCard
                   key={ticket.id}
                   ticket={ticket}
-                  onTicketDeleted={fetchTickets}
+                  onTicketDeleted={handleTicketDeleted}
                 />
               ))
             ) : (

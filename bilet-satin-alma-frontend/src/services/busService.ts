@@ -2,8 +2,12 @@ import { BusTrip } from '../types/BusTrip';
 
 const API_URL = 'http://localhost:8000/api'; // Assuming backend runs on port 8000
 
-export const getTrips = async (): Promise<BusTrip[]> => {
-  const response = await fetch(`${API_URL}/trips`);
+export const getTrips = async (from?: string | null, to?: string | null): Promise<BusTrip[]> => {
+  const params = new URLSearchParams();
+  if (from) params.append('from', from);
+  if (to) params.append('to', to);
+  
+  const response = await fetch(`${API_URL}/trips?${params.toString()}`);
   if (!response.ok) {
     throw new Error('Failed to fetch trips');
   }
@@ -84,11 +88,20 @@ export const updateBalance = async (amount: number) => {
   return response.json();
 };
 
-export const purchaseTicket = async (tripId: string, seatNumber: number) => {
+export const purchaseTicket = async (tripId: string, seatNumber: number, couponCode?: string) => {
+  const body: { trip_id: string; seat_number: number; coupon_code?: string } = {
+    trip_id: tripId,
+    seat_number: seatNumber,
+  };
+
+  if (couponCode) {
+    body.coupon_code = couponCode;
+  }
+
   const response = await fetch(`${API_URL}/tickets`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify({ trip_id: tripId, seat_number: seatNumber }),
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
     const errorData = await response.json();

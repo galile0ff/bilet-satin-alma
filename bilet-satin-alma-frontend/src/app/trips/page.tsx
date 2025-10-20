@@ -20,10 +20,17 @@ export default function Trips() {
   const [showAuthWarning, setShowAuthWarning] = useState(false);
 
   useEffect(() => {
+    if (user?.role === 'company') {
+      router.push('/');
+    }
+  }, [user, router]);
+
+  useEffect(() => {
     const loadTrips = async () => {
       try {
-        // Tüm seferleri getir (parametresiz)
-        const data = await getTrips();
+        const from = searchParams.get('from');
+        const to = searchParams.get('to');
+        const data = await getTrips(from, to);
         setTrips(data);
 
         const tripId = searchParams.get('tripId');
@@ -88,6 +95,20 @@ export default function Trips() {
               </div>
               {/* MESAJ KARTI BİTİŞ */}
 
+              {/* İPTAL POLİTİKASI KARTI BAŞLANGIÇ */}
+              <div className="p-4 mb-6 rounded-xl border-2 border-blue-700/50 bg-blue-50 shadow-md text-blue-800">
+                <h3 className="flex items-center gap-2 font-semibold text-lg mb-1">
+                  <svg className="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  İptal Politikası
+                </h3>
+                <p className="text-sm">
+                  Biletinizi sefer saatine <strong>1 saat</strong> kalana kadar iptal edebilirsiniz. İptal durumunda ödediğiniz tutar bakiyenize iade edilecektir.
+                </p>
+              </div>
+              {/* İPTAL POLİTİKASI KARTI BİTİŞ */}
+
               <SeatGrid trip={selectedTrip} selectedSeat={selectedSeat} onSeatSelect={setSelectedSeat} />
             </div>
 
@@ -132,9 +153,11 @@ export default function Trips() {
                     variant="primary"
                     size="lg"
                     className="w-full h-12 text-lg font-bold" 
-                    disabled={!selectedSeat}
                     onClick={() => {
-                      if (!selectedSeat) return;
+                      if (!selectedSeat) {
+                        alert('Lütfen bir koltuk seçin.');
+                        return;
+                      }
                       if (!user) {
                         setShowAuthWarning(true);
                       } else {
@@ -147,7 +170,17 @@ export default function Trips() {
                   </Button>
                   {showAuthWarning && (
                     <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-                      Altın keseni açmadan önce kim olduğunu bilmeliyiz gezgin. Ödeme yapabilmek için lütfen giriş yap ya da kayıt ol — Orta Dünya’da yolculuklar güvenle başlar.
+                      <p className="mb-2">
+                        Altın keseni açmadan önce kim olduğunu bilmeliyiz gezgin. Ödeme yapabilmek için lütfen giriş yap ya da kayıt ol — Orta Dünya’da yolculuklar güvenle başlar.
+                      </p>
+                      <Button 
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => router.push(`/login?redirect=/trips?tripId=${selectedTrip.id}`)}
+                      >
+                        Giriş Yap / Kayıt Ol
+                      </Button>
                     </div>
                   )}
                 </div>
