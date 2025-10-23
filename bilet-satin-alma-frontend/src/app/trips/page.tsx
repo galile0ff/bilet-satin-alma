@@ -135,7 +135,6 @@ export default function Trips() {
                   <div className="p-2 border-l-4 border-green-500/50"> 
                     <div className="text-sm text-brand-neutral/70">Varış Noktası</div>
                     <div className="font-semibold text-brand-neutral">{selectedTrip.to}</div>
-                    <div className="text-xs text-brand-neutral/60">{selectedTrip.departureDate} • {selectedTrip.arrivalTime}</div>
                   </div>
                 </div>
 

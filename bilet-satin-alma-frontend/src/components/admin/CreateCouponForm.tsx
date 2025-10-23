@@ -7,13 +7,18 @@ interface Company {
   name: string;
 }
 
-const CreateCouponForm: React.FC = () => {
+interface CreateCouponFormProps {
+  onCouponCreated: () => void;
+}
+
+const CreateCouponForm: React.FC<CreateCouponFormProps> = ({ onCouponCreated }) => {
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const [companyId, setCompanyId] = useState('');
   const [code, setCode] = useState('');
   const [discountRate, setDiscountRate] = useState('');
   const [usageLimit, setUsageLimit] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
-  const [companyId, setCompanyId] = useState('');
-  const [companies, setCompanies] = useState<Company[]>([]);
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const { user } = useAuth();
@@ -22,18 +27,14 @@ const CreateCouponForm: React.FC = () => {
     const fetchCompanies = async () => {
       try {
         const response = await fetch('http://localhost:8000/api/admin/companies', {
-          headers: {
-            'Authorization': `Bearer ${user?.id}`,
-          },
+          headers: { 'Authorization': `Bearer ${user?.id}` }
         });
-        if (response.ok) {
-          const data = await response.json();
-          setCompanies(data);
-        } else {
-          console.error('Failed to fetch companies');
-        }
+        const data = await response.json();
+        setCompanies(data);
       } catch (error) {
         console.error('Error fetching companies:', error);
+      } finally {
+        setLoadingCompanies(false);
       }
     };
 
@@ -59,19 +60,20 @@ const CreateCouponForm: React.FC = () => {
           discount_rate: discountRate,
           usage_limit: usageLimit,
           expiry_date: expiryDate,
-          company_id: companyId,
+          company_id: companyId || null,
         }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        setMessage('Harikulade, kupon başarıyla oluşturuldu. 🎉');
+        setMessage('Harikulade, kupon başarıyla oluşturuldu.');
         setIsSuccess(true);
         setCode('');
         setDiscountRate('');
         setUsageLimit('');
         setExpiryDate('');
         setCompanyId('');
+        onCouponCreated(); // Kupon listesini yenilemek için parent component'i bilgilendir.
       } else {
         setMessage(data.message || 'Kupon oluşturulurken bir hata oluştu.');
         setIsSuccess(false);
@@ -96,7 +98,7 @@ const CreateCouponForm: React.FC = () => {
       <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Yeni Kupon Oluştur</h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           
           <div>
             <label htmlFor="companyId" className="block text-sm font-medium text-gray-700 mb-1">Firma</label>
@@ -104,10 +106,10 @@ const CreateCouponForm: React.FC = () => {
               id="companyId"
               value={companyId}
               onChange={(e) => setCompanyId(e.target.value)}
-              className="block w-full px-4 py-2 border border-black rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150"
-              required
+              className="block w-full px-4 py-2 border border-black rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 bg-white"
+              disabled={loadingCompanies}
             >
-              <option value="">Firma Seçin</option>
+              <option value="">Genel Kupon (Tüm Firmalar)</option>
               {companies.map((company) => (
                 <option key={company.id} value={company.id}>
                   {company.name}
@@ -115,7 +117,7 @@ const CreateCouponForm: React.FC = () => {
               ))}
             </select>
           </div>
-
+          
           <div>
             <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">Kupon Kodu</label>
             <input
@@ -183,7 +185,8 @@ const CreateCouponForm: React.FC = () => {
 
             <button
                 type="submit"
-                className="w-full sm:w-auto inline-flex justify-center py-2 px-6 border border-transparent shadow-md text-base font-medium rounded-lg text-white bg-black hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out transform hover:scale-[1.01]"
+                className="w-full sm:w-auto inline-flex justify-center py-2 px-6 border border-transparent shadow-md text-base font-medium rounded-lg text-white bg-black hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out transform hover:scale-[1.01] disabled:opacity-50"
+                disabled={loadingCompanies}
             >
                 Kuponu Oluştur
             </button>

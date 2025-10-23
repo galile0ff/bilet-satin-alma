@@ -47,8 +47,20 @@ const CompanyDashboard = () => {
   const [viewingCouponUsage, setViewingCouponUsage] = useState<Coupon | null>(null);
   const [couponUsage, setCouponUsage] = useState<CouponUsage[]>([]);
   const [newCoupon, setNewCoupon] = useState({ code: '', discount_rate: '', usage_limit: '', expiry_date: '' });
-  const [newTrip, setNewTrip] = useState({ departure_city: '', destination_city: '', departure_time: '', arrival_time: '', price: '', capacity: '' });
+  const [newTrip, setNewTrip] = useState({ 
+    departure_city: '', 
+    destination_city: '', 
+    departure_date: '', 
+    departure_hour: '', 
+    arrival_date: '', 
+    arrival_hour: '', 
+    price: '', 
+    capacity: '' });
 
+  const hours = Array.from({ length: 24 }, (_, i) => {
+    const hour = i.toString().padStart(2, '0');
+    return `${hour}:00`;
+  });
   useEffect(() => {
     if (user) {
       setCompanyName(user.company_name || '');
@@ -224,6 +236,14 @@ const CompanyDashboard = () => {
       return;
     }
 
+    const departure_time = `${newTrip.departure_date}T${newTrip.departure_hour}`;
+    const arrival_time = `${newTrip.arrival_date}T${newTrip.arrival_hour}`;
+
+    const tripData = {
+      ...newTrip,
+      departure_time,
+      arrival_time,
+    };
     try {
       const response = await fetch('http://localhost:8000/api/trips', {
         method: 'POST',
@@ -231,11 +251,19 @@ const CompanyDashboard = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user?.id}`,
         },
-        body: JSON.stringify(newTrip),
+        body: JSON.stringify(tripData),
       });
       if (response.ok) {
         fetchTrips();
-        setNewTrip({ departure_city: '', destination_city: '', departure_time: '', arrival_time: '', price: '', capacity: '' });
+        setNewTrip({ 
+          departure_city: '', 
+          destination_city: '', 
+          departure_date: '', 
+          departure_hour: '', 
+          arrival_date: '', 
+          arrival_hour: '', 
+          price: '', 
+          capacity: '' });
       } else {
         const errorData = await response.json();
         alert(`Sefer oluşturulamadı: ${errorData.message}`);
@@ -275,11 +303,16 @@ const CompanyDashboard = () => {
       return;
     }
 
+    const departure_date = formData.get('departure_date') as string;
+    const departure_hour = formData.get('departure_hour') as string;
+    const arrival_date = formData.get('arrival_date') as string;
+    const arrival_hour = formData.get('arrival_hour') as string;
+
     const updatedTrip = {
       departure_city: departure_city,
       destination_city: destination_city,
-      departure_time: formData.get('departure_time'),
-      arrival_time: formData.get('arrival_time'),
+      departure_time: `${departure_date}T${departure_hour}:00`,
+      arrival_time: `${arrival_date}T${arrival_hour}:00`,
       price: formData.get('price'),
       capacity: formData.get('capacity'),
     };
@@ -480,23 +513,50 @@ const CompanyDashboard = () => {
                 value={newTrip.destination_city}
                 onChange={(e) => setNewTrip({ ...newTrip, destination_city: e.target.value.toUpperCase() })}
               />
-              <input 
-                name="departure_time" 
-                type="datetime-local" 
-                min={new Date().toISOString().slice(0, 16)} 
-                step="1800" 
-                className="input-minimal" 
-                value={newTrip.departure_time}
-                onChange={(e) => setNewTrip({ ...newTrip, departure_time: e.target.value })}
-              />
-              <input 
-                name="arrival_time" 
-                type="datetime-local" 
-                min={new Date().toISOString().slice(0, 16)} 
-                className="input-minimal" 
-                value={newTrip.arrival_time}
-                onChange={(e) => setNewTrip({ ...newTrip, arrival_time: e.target.value })}
-              />
+              <div className="flex gap-2">
+                <input 
+                  name="departure_date" 
+                  type="date" 
+                  min={new Date().toISOString().split('T')[0]} 
+                  className="input-minimal w-2/3" 
+                  value={newTrip.departure_date}
+                  onChange={(e) => setNewTrip({ ...newTrip, departure_date: e.target.value })}
+                  required
+                />
+                <select
+                  name="departure_hour"
+                  className="input-minimal w-1/3"
+                  value={newTrip.departure_hour}
+                  onChange={(e) => setNewTrip({ ...newTrip, departure_hour: e.target.value })}
+                  required
+                >
+                  {hours.map(hour => (
+                    <option key={hour} value={hour}>{hour}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <input 
+                  name="arrival_date" 
+                  type="date" 
+                  min={newTrip.departure_date || new Date().toISOString().split('T')[0]}
+                  className="input-minimal w-2/3" 
+                  value={newTrip.arrival_date}
+                  onChange={(e) => setNewTrip({ ...newTrip, arrival_date: e.target.value })}
+                  required
+                />
+                <select
+                  name="arrival_hour"
+                  className="input-minimal w-1/3"
+                  value={newTrip.arrival_hour}
+                  onChange={(e) => setNewTrip({ ...newTrip, arrival_hour: e.target.value })}
+                  required
+                >
+                  {hours.map(hour => (
+                    <option key={hour} value={hour}>{hour}</option>
+                  ))}
+                </select>
+              </div>
               <input 
                 name="price" 
                 placeholder="Fiyat" 
@@ -570,8 +630,29 @@ const CompanyDashboard = () => {
               <form onSubmit={handleUpdateTrip} className="mt-4 space-y-4">
                 <input name="departure_city" defaultValue={editingTrip.departure_city} className="input-minimal" onChange={(e) => (e.target.value = e.target.value.toUpperCase())} />
                 <input name="destination_city" defaultValue={editingTrip.destination_city} className="input-minimal" onChange={(e) => (e.target.value = e.target.value.toUpperCase())} />
-                <input name="departure_time" defaultValue={editingTrip.departure_time.slice(0, 16)} type="datetime-local" min={new Date().toISOString().slice(0, 16)} step="1800" className="input-minimal" />
-                <input name="arrival_time" defaultValue={editingTrip.arrival_time.slice(0, 16)} type="datetime-local" min={new Date().toISOString().slice(0, 16)} className="input-minimal" />
+                <div className="flex gap-2">
+                  <input name="departure_date" defaultValue={editingTrip.departure_time.split(' ')[0]} type="date" min={new Date().toISOString().split('T')[0]} className="input-minimal w-2/3" required />
+                  <select name="departure_hour" defaultValue={editingTrip.departure_time.split(' ')[1]?.slice(0, 5) || '00:00'} className="input-minimal w-1/3" required>
+                    {hours.map(hour => (
+                      <option key={hour} value={hour}>{hour}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    name="arrival_date" 
+                    defaultValue={editingTrip.arrival_time.split(' ')[0]} 
+                    type="date" 
+                    min={editingTrip.departure_time.split(' ')[0]} 
+                    className="input-minimal w-2/3" 
+                    required 
+                  />
+                  <select name="arrival_hour" defaultValue={editingTrip.arrival_time.split(' ')[1]?.slice(0, 5) || '00:00'} className="input-minimal w-1/3" required>
+                    {hours.map(hour => (
+                      <option key={hour} value={hour}>{hour}</option>
+                    ))}
+                  </select>
+                </div>
                 <input name="price" defaultValue={editingTrip.price} type="number" className="input-minimal" />
                 <input name="capacity" defaultValue={editingTrip.capacity} type="number" max="20" className="input-minimal" />
                 <div className="flex justify-end space-x-2">

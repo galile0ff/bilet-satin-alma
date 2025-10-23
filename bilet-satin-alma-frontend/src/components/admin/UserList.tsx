@@ -157,7 +157,7 @@ const UserList: React.FC = () => {
       case 'admin':
         return <span className={`${baseStyle} bg-red-100 text-red-800`}>Yönetici</span>;
       case 'company':
-        return <span className={`${baseStyle} bg-gray-800 text-white`}>Otobüs Firması</span>;
+        return <span className={`${baseStyle} bg-gray-800 text-white`}>Firma</span>;
       case 'user':
       default:
         return <span className={`${baseStyle} bg-green-100 text-green-800`}>Müşteri</span>;
@@ -210,8 +210,11 @@ const UserList: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.company_id || '—'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center space-x-2">
-                    <button onClick={() => setEditingUser(user)} className="text-blue-500 hover:text-blue-700"><Pencil size={16} /></button>
-                    <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
+                    <button onClick={() => setEditingUser(user)} className="text-blue-500 hover:text-blue-700 transition-colors"><Pencil size={16} /></button>
+                    {/* Admin rolündeki kullanıcılar için silme butonunu gösterme */}
+                    {user.role !== 'admin' && (
+                      <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 transition-colors"><Trash2 size={16} /></button>
+                    )}
                   </td>
                 </tr>
               ))

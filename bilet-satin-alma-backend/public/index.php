@@ -110,6 +110,11 @@ switch ($request_uri) {
             handle_admin_get_companies($pdo);
         }
         break;
+    case '/api/admin/all-coupons':
+        if ($request_method === 'GET') {
+            handle_admin_get_all_coupons($pdo);
+        }
+        break;
     case '/api/admin/coupons':
         if ($request_method === 'POST') {
             handle_admin_create_coupon($pdo, $request_body);
@@ -154,6 +159,10 @@ switch ($request_uri) {
                 handle_update_coupon($pdo, $matches[1], $request_body);
             } elseif ($request_method === 'DELETE') {
                 handle_delete_coupon($pdo, $matches[1]);
+            }
+        } else if (preg_match('/\/api\/admin\/coupons\/(\w+)/', $request_uri, $matches)) {
+            if ($request_method === 'DELETE') {
+                handle_admin_delete_coupon($pdo, $matches[1]);
             }
         } else if (preg_match('/\/api\/admin\/users\/(\w+)/', $request_uri, $matches)) {
             if ($request_method === 'DELETE') {
@@ -421,7 +430,7 @@ function handle_get_user_tickets($pdo) {
         $stmt->execute(['user_id' => $user_id]);
         $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode($tickets);
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
     }
@@ -540,7 +549,7 @@ function handle_purchase_ticket($pdo, $data) {
                 'SELECT c.*, COUNT(cu.id) as usage_count
                 FROM "Coupons" c
                 LEFT JOIN "Coupon_Usage" cu ON c.id = cu.coupon_id
-                WHERE c.code = :code AND c.company_id = :company_id
+                WHERE c.code = :code AND (c.company_id IS NULL OR c.company_id = :company_id)
                 GROUP BY c.id'
             );
             $stmt->execute(['code' => $coupon_code, 'company_id' => $trip['company_id']]);
@@ -791,33 +800,39 @@ function handle_create_trip($pdo, $data) {
             return;
         }
 
+        $departure_dt = new DateTime($data['departure_time'], new DateTimeZone('Europe/Istanbul'));
+        $arrival_dt = new DateTime($data['arrival_time'], new DateTimeZone('Europe/Istanbul'));
+        $current_time = new DateTime('now', new DateTimeZone('Europe/Istanbul'));
+
+        if ($departure_dt < $current_time) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Zamanın akışıyla oynamak tehlikelidir sevgili firma sahibi. Geçmişe sefer düzenlenemez — çünkü hiçbir at, rüzgârı geriye doğru koşturamaz.']);
+            return;
+        }
+
+        if ($arrival_dt < $departure_dt) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Varış zamanı, kalkış zamanından önce olamaz. Zaman yolculuğu henüz icat edilmedi.']);
+            return;
+        }
+
         // Check for duplicate trip
         $stmt = $pdo->prepare(
             'SELECT id FROM "Trips" 
              WHERE company_id = :company_id 
              AND departure_city = :departure_city 
              AND destination_city = :destination_city 
-             AND DATE(departure_time) = DATE(:departure_time)'
+             AND departure_time = :departure_time'
         );
-        $departure_dt_for_check = new DateTime($data['departure_time'], new DateTimeZone('Europe/Istanbul'));
         $stmt->execute([
             'company_id' => $company_id,
             'departure_city' => $departure_city_upper,
             'destination_city' => $destination_city_upper,
-            'departure_time' => $departure_dt_for_check->format('Y-m-d H:i:s')
+            'departure_time' => $departure_dt->format('Y-m-d H:i:s'),
         ]);
         if ($stmt->fetch()) {
             http_response_code(409);
-            echo json_encode(['message' => 'Bu güzergaha bu tarihte zaten bir sefer mevcut.']);
-            return;
-        }
-
-        $departure_dt = new DateTime($data['departure_time'], new DateTimeZone('Europe/Istanbul'));
-        $current_time = new DateTime('now', new DateTimeZone('Europe/Istanbul'));
-
-        if ($departure_dt < $current_time) {
-            http_response_code(400);
-            echo json_encode(['message' => 'Zamanın akışıyla oynamak tehlikelidir sevgili firma sahibi. Geçmişe sefer düzenlenemez — çünkü hiçbir at, rüzgârı geriye doğru koşturamaz.']);
+            echo json_encode(['message' => 'Bu güzergaha bu tarih ve saatte zaten bir sefer mevcut.']);
             return;
         }
 
@@ -828,9 +843,6 @@ function handle_create_trip($pdo, $data) {
             'INSERT INTO "Trips" (id, company_id, destination_city, arrival_time, departure_time, departure_city, price, capacity, created_date) 
              VALUES (:id, :company_id, :destination_city, :arrival_time, :departure_time, :departure_city, :price, :capacity, :created_date)'
         );
-        $arrival_dt = new DateTime($data['arrival_time'], new DateTimeZone('Europe/Istanbul'));
-
-        $departure_dt = new DateTime($data['departure_time'], new DateTimeZone('Europe/Istanbul'));
         
         $params = [
             'id' => $trip_id,
@@ -892,6 +904,10 @@ function handle_update_trip($pdo, $trip_id, $data) {
             return;
         }
 
+        $departure_dt = new DateTime($data['departure_time'], new DateTimeZone('Europe/Istanbul'));
+        $arrival_dt = new DateTime($data['arrival_time'], new DateTimeZone('Europe/Istanbul'));
+        $current_time = new DateTime('now', new DateTimeZone('Europe/Istanbul'));
+
         if (
             !isset($data['destination_city']) || $data['destination_city'] === '' ||
             !isset($data['arrival_time']) || $data['arrival_time'] === '' ||
@@ -923,6 +939,13 @@ function handle_update_trip($pdo, $trip_id, $data) {
             return;
         }
 
+        if ($arrival_dt < $departure_dt) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Varış tarihi, kalkış tarihinden önce olamaz.']);
+            $pdo->rollBack();
+            return;
+        }
+
         // Check for duplicate trip on update
         $stmt = $pdo->prepare(
             'SELECT id FROM "Trips" 
@@ -932,27 +955,16 @@ function handle_update_trip($pdo, $trip_id, $data) {
              AND departure_time = :departure_time
              AND id != :trip_id'
         );
-        $departure_dt_for_check = new DateTime($data['departure_time'], new DateTimeZone('Europe/Istanbul'));
         $stmt->execute([
             'company_id' => $company_id,
             'departure_city' => $departure_city_upper,
             'destination_city' => $destination_city_upper,
-            'departure_time' => $departure_dt_for_check->format('Y-m-d H:i:s'),
+            'departure_time' => $departure_dt->format('Y-m-d H:i:s'),
             'trip_id' => $trip_id
         ]);
         if ($stmt->fetch()) {
             http_response_code(409);
             echo json_encode(['message' => 'Bu güzergaha bu tarih ve saatte zaten bir sefer mevcut.']);
-            $pdo->rollBack();
-            return;
-        }
-
-        $departure_dt = new DateTime($data['departure_time'], new DateTimeZone('Europe/Istanbul'));
-        $current_time = new DateTime('now', new DateTimeZone('Europe/Istanbul'));
-
-        if ($departure_dt < $current_time) {
-            http_response_code(400);
-            echo json_encode(['message' => 'Geçmişe sefer düzenlenemez.']);
             $pdo->rollBack();
             return;
         }
@@ -1018,8 +1030,7 @@ function handle_update_trip($pdo, $trip_id, $data) {
                 price = :price, 
                 capacity = :capacity 
              WHERE id = :id'
-        );
-        $arrival_dt = new DateTime($data['arrival_time'], new DateTimeZone('Europe/Istanbul'));
+        );        
 
         $stmt->execute([
             'destination_city' => $destination_city_upper,
@@ -1251,12 +1262,12 @@ function handle_create_coupon($pdo, $data) {
             return;
         }
 
-        // Check for duplicate coupon code for the same company
-        $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE code = :code AND company_id = :company_id');
-        $stmt->execute(['code' => $data['code'], 'company_id' => $company_id]);
+        // Check for duplicate coupon code system-wide
+        $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE code = :code');
+        $stmt->execute(['code' => $data['code']]);
         if ($stmt->fetch()) {
             http_response_code(409);
-            echo json_encode(['message' => 'Bu kupon kodu zaten kullanılıyor.']);
+            echo json_encode(['message' => 'Bu kupon kodu zaten tüm sistemde kullanılıyor.']);
             return;
         }
 
@@ -1366,12 +1377,21 @@ function handle_update_coupon($pdo, $coupon_id, $data) {
             return;
         }
 
-        // Check for duplicate coupon code on update
-        $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE code = :code AND company_id = :company_id AND id != :coupon_id');
-        $stmt->execute(['code' => $data['code'], 'company_id' => $company_id, 'coupon_id' => $coupon_id]);
+        // Prevent updating coupons to a past expiry date
+        $expiry_dt = new DateTime($data['expiry_date']);
+        $today = new DateTime('today');
+        if ($expiry_dt < $today) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Kuponun geçerlilik tarihi geçmiş bir tarih olamaz.']);
+            return;
+        }
+
+        // Check for duplicate coupon code on update system-wide
+        $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE code = :code AND id != :coupon_id');
+        $stmt->execute(['code' => $data['code'], 'coupon_id' => $coupon_id]);
         if ($stmt->fetch()) {
             http_response_code(409);
-            echo json_encode(['message' => 'Bu kupon kodu zaten kullanılıyor.']);
+            echo json_encode(['message' => 'Bu kupon kodu zaten başka bir kupon için kullanılıyor.']);
             return;
         }
 
@@ -1697,6 +1717,47 @@ function handle_admin_get_companies($pdo) {
     }
 }
 
+function handle_admin_get_all_coupons($pdo) {
+    if (!is_admin($pdo)) {
+        http_response_code(403);
+        echo json_encode(['message' => 'Yetkisiz erişim.']);
+        return;
+    }
+
+    try {
+        $stmt = $pdo->query('
+            SELECT 
+                c.id,
+                c.code,
+                c.discount_rate,
+                c.usage_limit,
+                c.expiry_date,
+                c.created_at,
+                COALESCE(bc.name, \'Tüm Firmalar (Genel)\') as company_name,
+                CASE WHEN c.company_id IS NULL THEN \'Admin\' ELSE \'Firma\' END as creator,
+                COUNT(cu.coupon_id) as usage_count
+            FROM 
+                "Coupons" c
+            LEFT JOIN 
+                "Bus_Company" bc ON c.company_id = bc.id
+            LEFT JOIN 
+                "Coupon_Usage" cu ON c.id = cu.coupon_id
+            GROUP BY
+                c.id, c.code, c.discount_rate, c.usage_limit, c.expiry_date, c.created_at, company_name, creator
+            ORDER BY
+                c.created_at DESC
+        ');
+        
+        $coupons = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        http_response_code(200);
+        echo json_encode($coupons);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
 function handle_admin_create_coupon($pdo, $data) {
     if (!is_admin($pdo)) {
         http_response_code(403);
@@ -1704,13 +1765,33 @@ function handle_admin_create_coupon($pdo, $data) {
         return;
     }
 
-    if (empty($data['code']) || empty($data['discount_rate']) || empty($data['usage_limit']) || empty($data['expiry_date']) || empty($data['company_id'])) {
+    if (empty($data['code']) || empty($data['discount_rate']) || empty($data['usage_limit']) || empty($data['expiry_date'])) {
         http_response_code(400);
-        echo json_encode(['message' => 'Tüm alanları doldurun.']);
+        echo json_encode(['message' => 'Kod, indirim oranı, kullanım limiti ve geçerlilik tarihi alanları zorunludur.']);
+        return;
+    }
+
+    $company_id = !empty($data['company_id']) ? $data['company_id'] : null;
+
+    // Prevent creating coupons with a past expiry date
+    $expiry_dt = new DateTime($data['expiry_date']);
+    $today = new DateTime('today');
+    if ($expiry_dt < $today) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Zaman yolculuğu teşebbüsü ha! Geçmiş bir tarihe kupon oluşturulamaz.']);
         return;
     }
 
     try {
+        // Check for duplicate coupon code system-wide
+        $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE code = :code');
+        $stmt->execute(['code' => $data['code']]);
+        if ($stmt->fetch()) {
+            http_response_code(409);
+            echo json_encode(['message' => 'Bu kupon kodu zaten sistemde mevcut. Lütfen farklı bir kod deneyin.']);
+            return;
+        }
+
         $coupon_id = uniqid();
         $created_at = date('Y-m-d H:i:s');
 
@@ -1720,7 +1801,7 @@ function handle_admin_create_coupon($pdo, $data) {
         );
         $stmt->execute([
             'id' => $coupon_id,
-            'company_id' => $data['company_id'],
+            'company_id' => $company_id,
             'code' => $data['code'],
             'discount_rate' => $data['discount_rate'],
             'usage_limit' => $data['usage_limit'],
@@ -1729,9 +1810,39 @@ function handle_admin_create_coupon($pdo, $data) {
         ]);
 
         http_response_code(201);
-        echo json_encode(['message' => 'Genel kupon başarıyla oluşturuldu.', 'coupon_id' => $coupon_id]);
+        echo json_encode(['message' => 'Kupon başarıyla oluşturuldu.', 'coupon_id' => $coupon_id]);
 
     } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function handle_admin_delete_coupon($pdo, $coupon_id) {
+    if (!is_admin($pdo)) {
+        http_response_code(403);
+        echo json_encode(['message' => 'Yetkisiz erişim.']);
+        return;
+    }
+
+    try {
+        $pdo->beginTransaction();
+
+        // Önce kupon kullanım kayıtlarını sil
+        $stmt = $pdo->prepare('DELETE FROM "Coupon_Usage" WHERE coupon_id = :coupon_id');
+        $stmt->execute(['coupon_id' => $coupon_id]);
+
+        // Sonra kuponu sil
+        $stmt = $pdo->prepare('DELETE FROM "Coupons" WHERE id = :id');
+        $stmt->execute(['id' => $coupon_id]);
+
+        $pdo->commit();
+
+        http_response_code(200);
+        echo json_encode(['message' => 'Kupon başarıyla silindi.']);
+
+    } catch (PDOException $e) {
+        $pdo->rollBack();
         http_response_code(500);
         echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
     }
@@ -1876,24 +1987,15 @@ function handle_validate_coupon($pdo, $data) {
     }
 
     try {
-        $stmt = $pdo->prepare('SELECT company_id FROM "Trips" WHERE id = :trip_id');
-        $stmt->execute(['trip_id' => $data['trip_id']]);
-        $trip = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$trip) {
-            http_response_code(404);
-            echo json_encode(['message' => 'Sefer bulunamadı.']);
-            return;
-        }
-
+        // First, find the coupon by code
         $stmt = $pdo->prepare(' 
             SELECT c.*, COUNT(cu.id) as usage_count
             FROM "Coupons" c
             LEFT JOIN "Coupon_Usage" cu ON c.id = cu.coupon_id
-            WHERE c.code = :code AND c.company_id = :company_id
+            WHERE c.code = :code
             GROUP BY c.id
         ');
-        $stmt->execute(['code' => $data['coupon_code'], 'company_id' => $trip['company_id']]);
+        $stmt->execute(['code' => $data['coupon_code']]);
         $coupon = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$coupon) {
@@ -1901,6 +2003,21 @@ function handle_validate_coupon($pdo, $data) {
             echo json_encode(['message' => 'Sakin ol sahtekar! Böyle bir kupon yok.']);
             return;
         }
+
+        // If the coupon has a company_id, it's not a global coupon
+        if ($coupon['company_id'] !== null) {
+            // Check if it matches the trip's company
+            $stmt = $pdo->prepare('SELECT company_id FROM "Trips" WHERE id = :trip_id');
+            $stmt->execute(['trip_id' => $data['trip_id']]);
+            $trip = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$trip || $trip['company_id'] !== $coupon['company_id']) {
+                http_response_code(403);
+                echo json_encode(['message' => 'Bu kupon bu kervanda geçmez.']);
+                return;
+            }
+        }
+        // If company_id is null, it's a global coupon, so we skip the company check.
 
         if (new DateTime() >= new DateTime($coupon['expiry_date'])) {
             http_response_code(410);
