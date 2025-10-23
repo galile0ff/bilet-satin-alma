@@ -24,6 +24,8 @@ export default function MyAccountPage() {
       router.push('/login');
     } else if (user?.role === 'company') {
       router.push('/company');
+    } else if (user?.role === 'admin') {
+      router.push('/admin');
     }
   }, [user, loading, router]);
 

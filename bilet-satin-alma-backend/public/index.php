@@ -100,6 +100,26 @@ switch ($request_uri) {
             handle_validate_coupon($pdo, $request_body);
         }
         break;
+    case '/api/admin/users':
+        if ($request_method === 'GET') {
+            handle_admin_get_users($pdo);
+        }
+        break;
+    case '/api/admin/companies':
+        if ($request_method === 'GET') {
+            handle_admin_get_companies($pdo);
+        }
+        break;
+    case '/api/admin/coupons':
+        if ($request_method === 'POST') {
+            handle_admin_create_coupon($pdo, $request_body);
+        }
+        break;
+    case '/api/admin/company-users':
+        if ($request_method === 'POST') {
+            handle_admin_create_company_user($pdo, $request_body);
+        }
+        break;
     default:
         if (preg_match('/\/api\/notifications\/(\w+)\/read/', $request_uri, $matches)) {
             if ($request_method === 'PUT') {
@@ -134,6 +154,12 @@ switch ($request_uri) {
                 handle_update_coupon($pdo, $matches[1], $request_body);
             } elseif ($request_method === 'DELETE') {
                 handle_delete_coupon($pdo, $matches[1]);
+            }
+        } else if (preg_match('/\/api\/admin\/users\/(\w+)/', $request_uri, $matches)) {
+            if ($request_method === 'DELETE') {
+                handle_admin_delete_user($pdo, $matches[1]);
+            } elseif ($request_method === 'PUT') {
+                handle_admin_update_user($pdo, $matches[1], $request_body);
             }
         } else {
             http_response_code(404);
@@ -510,13 +536,13 @@ function handle_purchase_ticket($pdo, $data) {
 
         if (!empty($data['coupon_code'])) {
             $coupon_code = $data['coupon_code'];
-            $stmt = $pdo->prepare('
-                SELECT c.*, COUNT(cu.id) as usage_count
+            $stmt = $pdo->prepare(
+                'SELECT c.*, COUNT(cu.id) as usage_count
                 FROM "Coupons" c
                 LEFT JOIN "Coupon_Usage" cu ON c.id = cu.coupon_id
                 WHERE c.code = :code AND c.company_id = :company_id
-                GROUP BY c.id
-            ');
+                GROUP BY c.id'
+            );
             $stmt->execute(['code' => $coupon_code, 'company_id' => $trip['company_id']]);
             $coupon = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -1280,7 +1306,7 @@ function handle_get_company_coupons($pdo) {
         }
         $company_id = $user['company_id'];
 
-        $stmt = $pdo->prepare('
+        $stmt = $pdo->prepare(' 
             SELECT c.*, COUNT(cu.id) as usage_count
             FROM "Coupons" c
             LEFT JOIN "Coupon_Usage" cu ON c.id = cu.coupon_id
@@ -1604,7 +1630,7 @@ function handle_get_coupon_usage($pdo, $coupon_id) {
             return;
         }
 
-        $stmt = $pdo->prepare('
+        $stmt = $pdo->prepare(' 
             SELECT u.full_name, cu.used_at
             FROM "Coupon_Usage" cu
             JOIN "User" u ON cu.user_id = u.id
@@ -1616,6 +1642,219 @@ function handle_get_coupon_usage($pdo, $coupon_id) {
         http_response_code(200);
         echo json_encode($usage);
 
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function is_admin($pdo) {
+    $user_id = get_user_id_from_header();
+    if (!$user_id) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare('SELECT role FROM "User" WHERE id = :id');
+    $stmt->execute(['id' => $user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $user && $user['role'] === 'admin';
+}
+
+function handle_admin_get_users($pdo) {
+    if (!is_admin($pdo)) {
+        http_response_code(403);
+        echo json_encode(['message' => 'Yetkisiz erişim.']);
+        return;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT id, full_name, email, role, company_id FROM "User"');
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        http_response_code(200);
+        echo json_encode($users);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function handle_admin_get_companies($pdo) {
+    if (!is_admin($pdo)) {
+        http_response_code(403);
+        echo json_encode(['message' => 'Yetkisiz erişim.']);
+        return;
+    }
+
+    try {
+        $stmt = $pdo->query('SELECT id, name FROM "Bus_Company"');
+        $companies = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        http_response_code(200);
+        echo json_encode($companies);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function handle_admin_create_coupon($pdo, $data) {
+    if (!is_admin($pdo)) {
+        http_response_code(403);
+        echo json_encode(['message' => 'Yetkisiz erişim.']);
+        return;
+    }
+
+    if (empty($data['code']) || empty($data['discount_rate']) || empty($data['usage_limit']) || empty($data['expiry_date']) || empty($data['company_id'])) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Tüm alanları doldurun.']);
+        return;
+    }
+
+    try {
+        $coupon_id = uniqid();
+        $created_at = date('Y-m-d H:i:s');
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO "Coupons" (id, company_id, code, discount_rate, usage_limit, expiry_date, created_at)
+             VALUES (:id, :company_id, :code, :discount_rate, :usage_limit, :expiry_date, :created_at)'
+        );
+        $stmt->execute([
+            'id' => $coupon_id,
+            'company_id' => $data['company_id'],
+            'code' => $data['code'],
+            'discount_rate' => $data['discount_rate'],
+            'usage_limit' => $data['usage_limit'],
+            'expiry_date' => $data['expiry_date'],
+            'created_at' => $created_at
+        ]);
+
+        http_response_code(201);
+        echo json_encode(['message' => 'Genel kupon başarıyla oluşturuldu.', 'coupon_id' => $coupon_id]);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function handle_admin_create_company_user($pdo, $data) {
+    if (!is_admin($pdo)) {
+        http_response_code(403);
+        echo json_encode(['message' => 'Yetkisiz erişim.']);
+        return;
+    }
+
+    if (empty($data['full_name']) || empty($data['email']) || empty($data['password']) || empty($data['company_id'])) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Tüm alanları doldurun.']);
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT id FROM "User" WHERE email = :email');
+        $stmt->execute(['email' => $data['email']]);
+        if ($stmt->fetch()) {
+            http_response_code(409);
+            echo json_encode(['message' => 'Bu e-mail adresi zaten kayıtlı.']);
+            return;
+        }
+
+        $id = uniqid();
+        $hashed_password = password_hash($data['password'], PASSWORD_BCRYPT);
+        $created_at = date('Y-m-d H:i:s');
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO "User" (id, full_name, email, role, password, company_id, created_at) 
+             VALUES (:id, :full_name, :email, :role, :password, :company_id, :created_at)'
+        );
+
+        $stmt->execute([
+            'id' => $id,
+            'full_name' => $data['full_name'],
+            'email' => $data['email'],
+            'role' => 'company',
+            'password' => $hashed_password,
+            'company_id' => $data['company_id'],
+            'created_at' => $created_at
+        ]);
+
+        http_response_code(201);
+        echo json_encode(['message' => 'Firma kullanıcısı başarıyla oluşturuldu.', 'user_id' => $id]);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function handle_admin_delete_user($pdo, $user_id) {
+    if (!is_admin($pdo)) {
+        http_response_code(403);
+        echo json_encode(['message' => 'Yetkisiz erişim.']);
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare('DELETE FROM "User" WHERE id = :id');
+        $stmt->execute(['id' => $user_id]);
+
+        if ($stmt->rowCount() > 0) {
+            http_response_code(200);
+            echo json_encode(['message' => 'Kullanıcı başarıyla silindi.']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['message' => 'Kullanıcı bulunamadı.']);
+        }
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function handle_admin_update_user($pdo, $user_id, $data) {
+    if (!is_admin($pdo)) {
+        http_response_code(403);
+        echo json_encode(['message' => 'Yetkisiz erişim.']);
+        return;
+    }
+
+    $email = $data['email'] ?? null;
+    $password = $data['password'] ?? null;
+
+    if (empty($email)) {
+        http_response_code(400);
+        echo json_encode(['message' => 'E-posta adresi boş olamaz.']);
+        return;
+    }
+
+    try {
+        // Check if email already exists for another user
+        $stmt = $pdo->prepare('SELECT id FROM "User" WHERE email = :email AND id != :id');
+        $stmt->execute(['email' => $email, 'id' => $user_id]);
+        if ($stmt->fetch()) {
+            http_response_code(409);
+            echo json_encode(['message' => 'Bu e-posta adresi zaten başka bir kullanıcı tarafından kullanılıyor.']);
+            return;
+        }
+
+        if (!empty($password)) {
+            // Update email and password
+            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+            $stmt = $pdo->prepare('UPDATE "User" SET email = :email, password = :password WHERE id = :id');
+            $stmt->execute(['email' => $email, 'password' => $hashed_password, 'id' => $user_id]);
+        } else {
+            // Update only email
+            $stmt = $pdo->prepare('UPDATE "User" SET email = :email WHERE id = :id');
+            $stmt->execute(['email' => $email, 'id' => $user_id]);
+        }
+
+        if ($stmt->rowCount() > 0) {
+            http_response_code(200);
+            echo json_encode(['message' => 'Kullanıcı başarıyla güncellendi.']);
+        } else {
+            http_response_code(404);
+            echo json_encode(['message' => 'Kullanıcı bulunamadı veya bilgilerde değişiklik yapılmadı.']);
+        }
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
@@ -1647,7 +1886,7 @@ function handle_validate_coupon($pdo, $data) {
             return;
         }
 
-        $stmt = $pdo->prepare('
+        $stmt = $pdo->prepare(' 
             SELECT c.*, COUNT(cu.id) as usage_count
             FROM "Coupons" c
             LEFT JOIN "Coupon_Usage" cu ON c.id = cu.coupon_id

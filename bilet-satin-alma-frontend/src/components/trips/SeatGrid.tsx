@@ -11,7 +11,7 @@ interface SeatGridProps {
 export default function SeatGrid({ trip, selectedSeat, onSeatSelect }: SeatGridProps) {
   const createSeatPlan = () => {
     const seats = [];
-    const is2plus1 = trip.busType !== "2+2"; // Assuming 2+1 is default
+    const is2plus1 = trip.busType !== "2+1"; // Assuming 2+1 is default
     const seatsPerRow = is2plus1 ? 3 : 4;
     const rows = Math.ceil(trip.capacity / seatsPerRow);
 

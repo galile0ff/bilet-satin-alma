@@ -38,7 +38,9 @@ export default function LoginForm() {
       const response = await loginService(formData);
       login(response.user);
       
-      if (response.user.role === 'company') {
+      if (response.user.role === 'admin') {
+        router.push('/admin');
+      } else if (response.user.role === 'company') {
         router.push('/company');
       } else {
         const targetPath = redirectPath || defaultRedirect;

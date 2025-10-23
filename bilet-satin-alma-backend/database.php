@@ -65,7 +65,7 @@ class Database {
             )',
             'CREATE TABLE IF NOT EXISTS "Coupons" (
                 "id" TEXT PRIMARY KEY,
-                "company_id" TEXT NOT NULL,
+                "company_id" TEXT,
                 "code" TEXT NOT NULL,
                 "discount_rate" REAL NOT NULL,
                 "usage_limit" INTEGER NOT NULL,
@@ -94,6 +94,25 @@ class Database {
         foreach ($commands as $command) {
             $this->pdo->exec($command);
         }
+
+        $this->seedAdmin();
+    }
+
+    private function seedAdmin() {
+        $stmt = $this->pdo->prepare('SELECT id FROM "User" WHERE email = ?');
+        $stmt->execute(['admin@galileoff.com']);
+        if ($stmt->fetch()) {
+            return; // Admin already exists
+        }
+
+        $adminId = uniqid();
+        $passwordHash = password_hash('faulkner', PASSWORD_BCRYPT);
+        $createdAt = date('Y-m-d H:i:s');
+
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO "User" (id, full_name, email, role, password, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([$adminId, 'Admin User', 'admin@galileoff.com', 'admin', $passwordHash, $createdAt]);
     }
 
     public function getPdo() {
