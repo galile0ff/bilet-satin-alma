@@ -16,7 +16,8 @@ const LogoIcon = (props: React.SVGProps<SVGSVGElement>) => (
 const navLinks = [
   { href: '/trips', label: 'Tüm Seferler', roles: ['user', 'guest', 'company'] },
   { href: '/my-tickets', label: 'Biletlerim', roles: ['user'] },
-  { href: '/campaigns', label: 'Güncel Kampanyalar', roles: ['user', 'guest'] },
+  { href: '/campaigns', label: 'Kampanyalar', roles: ['user', 'guest'] },
+  { href: '/partnerler', label: 'Otobüs Firmaları', roles: ['user', 'guest', 'company'] },
 ];
 
 export default function Header() {

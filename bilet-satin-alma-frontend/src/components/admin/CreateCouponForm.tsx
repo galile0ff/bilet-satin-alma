@@ -66,14 +66,14 @@ const CreateCouponForm: React.FC<CreateCouponFormProps> = ({ onCouponCreated }) 
 
       const data = await response.json();
       if (response.ok) {
-        setMessage('Harikulade, kupon başarıyla oluşturuldu.');
+        setMessage('Kodu oluşturdun. Bu kupon yalnızca bir gezgin tarafından kullanılabilir. Kurallara uyulmadığında lanetlenir (şaka yapmıyorum)!');
         setIsSuccess(true);
         setCode('');
         setDiscountRate('');
         setUsageLimit('');
         setExpiryDate('');
         setCompanyId('');
-        onCouponCreated(); // Kupon listesini yenilemek için parent component'i bilgilendir.
+        onCouponCreated();
       } else {
         setMessage(data.message || 'Kupon oluşturulurken bir hata oluştu.');
         setIsSuccess(false);
@@ -172,7 +172,6 @@ const CreateCouponForm: React.FC<CreateCouponFormProps> = ({ onCouponCreated }) 
           </div>
         </div>
         
-        {/* Mesaj Alanı ve Buton */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4">
             
             {message ? (

@@ -62,6 +62,7 @@ const CompanyDashboard = () => {
     return `${hour}:00`;
   });
   useEffect(() => {
+
     if (user) {
       setCompanyName(user.company_name || '');
       setCompanyRepresentative(user.full_name || '');

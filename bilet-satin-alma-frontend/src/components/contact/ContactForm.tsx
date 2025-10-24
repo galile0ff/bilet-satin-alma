@@ -20,7 +20,6 @@ export default function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Form gönderme işlemi buraya gelecek
     console.log('İletişim formu gönderildi:', formData);
     alert('Mesajınız gönderildi! En kısa sürede size dönüş yapmayacağız.');
     setFormData({ name: '', email: '', subject: '', message: '' });

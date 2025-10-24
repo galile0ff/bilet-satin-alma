@@ -15,20 +15,18 @@ export default function TicketCard({ ticket, onTicketDeleted }: TicketCardProps)
   const handleDownloadPdf = async () => {
     const ticketElement = ticketRef.current;
     if (ticketElement) {
-      // Butonları gizle
       const buttons = ticketElement.querySelector('.ticket-buttons') as HTMLElement;
       if (buttons) buttons.style.display = 'none';
 
       const canvas = await html2canvas(ticketElement, {
-        scale: 2, // Daha yüksek çözünürlük için
-        backgroundColor: null, // Arka planı şeffaf yap
+        scale: 2,
+        backgroundColor: null,
       });
 
-      // Butonları geri göster
       if (buttons) buttons.style.display = 'flex';
 
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('landscape', 'pt', 'a5'); // Yatay A5 formatı
+      const pdf = new jsPDF('landscape', 'pt', 'a5');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgProps = pdf.getImageProperties(imgData);
@@ -63,63 +61,79 @@ export default function TicketCard({ ticket, onTicketDeleted }: TicketCardProps)
   };
 
   return (
-    <div ref={ticketRef} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-      <div className="p-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-        <div className="flex justify-between items-center">
-          <h3 className="text-2xl font-bold">{ticket.company_name}</h3>
+    <div ref={ticketRef} className="border border-green-200 rounded-lg bg-white">
+      <div className="p-6 border-b border-green-200">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="text-2xl font-bold text-green-800 mb-1">{ticket.company_name}</h3>
+            <p className="text-sm text-gray-600">
+              {new Date(ticket.departure_time).toLocaleDateString('tr-TR')}
+            </p>
+          </div>
           <div className="text-right">
-            <p className="text-sm opacity-80">Yolculuk Tarihi</p>
-            <p className="font-semibold text-lg">{new Date(ticket.departure_time).toLocaleDateString('tr-TR')}</p>
+            <p className="text-3xl sm:text-4xl font-extrabold text-green-800">{ticket.total_price} TL</p>
+            <p className="text-sm text-gray-600">Koltuk: {ticket.seat_number}</p>
           </div>
         </div>
       </div>
-      <div className="p-6">
-        <div className="flex justify-between items-center">
+
+      <div className="p-6 border-b border-gray-200">
+        <div className="grid grid-cols-3 gap-4 items-center">
           <div>
-            <p className="text-sm text-gray-500">Kalkış</p>
-            <p className="text-2xl font-bold text-gray-800">{ticket.departure_city}</p>
-            <p className="text-lg text-gray-600">{new Date(ticket.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+            <p className="text-xs text-gray-600 mb-1">Kalkış</p>
+            <p className="text-xl font-bold text-gray-900">{ticket.departure_city}</p>
+            <p className="text-sm text-gray-600">
+              {new Date(ticket.departure_time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+            </p>
           </div>
-          <div className="text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          
+          <div className="flex justify-center">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
           </div>
+          
           <div className="text-right">
-            <p className="text-sm text-gray-500">Varış</p>
-            <p className="text-2xl font-bold text-gray-800">{ticket.destination_city}</p>
-            <p className="text-lg text-gray-600">{new Date(ticket.arrival_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-          </div>
-        </div>
-        <div className="mt-6 pt-6 border-t border-dashed">
-          <div className="flex justify-between items-center text-center">
-            <div>
-              <p className="text-sm text-gray-500">Koltuk No</p>
-              <p className="text-xl font-bold text-indigo-600">{ticket.seat_number}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Fiyat</p>
-              <p className="text-xl font-bold text-indigo-600">{ticket.total_price} TL</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Bilet Tarihi</p>
-              <p className="text-xl font-bold text-indigo-600">{new Date(ticket.created_at).toLocaleDateString('tr-TR')}</p>
-            </div>
+            <p className="text-xs text-gray-600 mb-1">Varış</p>
+            <p className="text-xl font-bold text-gray-900">{ticket.destination_city}</p>
+            <p className="text-sm text-gray-600">
+              {new Date(ticket.arrival_time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+            </p>
           </div>
         </div>
       </div>
-      <div className="p-4 bg-gray-50 flex justify-end space-x-3 ticket-buttons">
+
+      <div className="p-6 border-b border-gray-200">
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p className="text-xs text-gray-600 mb-1">Koltuk No</p>
+            <p className="text-lg font-bold text-gray-900">{ticket.seat_number}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-600 mb-1">Fiyat</p>
+            <p className="text-lg font-bold text-gray-900">{ticket.total_price} TL</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-600 mb-1">Alım Tarihi</p>
+            <p className="text-lg font-bold text-gray-900">
+              {new Date(ticket.created_at).toLocaleDateString('tr-TR')}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 bg-green-50 flex justify-end gap-2 ticket-buttons">
         <button
           onClick={handleDownloadPdf}
-          className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition-colors"
+          className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
         >
           PDF İndir
         </button>
         <button
           onClick={handleDelete}
-          className="px-4 py-2 text-sm font-medium text-red-600 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
+          className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors"
         >
-          Bileti Sil
+          İptal Et
         </button>
       </div>
     </div>

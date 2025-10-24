@@ -10,7 +10,6 @@ const AdminDashboard: React.FC = () => {
   const [couponUpdateKey, setCouponUpdateKey] = React.useState(0);
 
   const handleCouponCreated = () => {
-    // Bu fonksiyon, kupon listesini yenilemek için state'i günceller.
     setCouponUpdateKey(prevKey => prevKey + 1);
   };
 

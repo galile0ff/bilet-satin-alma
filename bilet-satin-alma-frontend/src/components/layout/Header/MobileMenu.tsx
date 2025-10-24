@@ -9,7 +9,6 @@ export default function MobileMenu() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="md:hidden p-2 rounded-xl bg-morphism-surface border border-morphism-border hover:border-brand-primary/30 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
@@ -31,8 +30,7 @@ export default function MobileMenu() {
           )} />
         </div>
       </button>
-
-      {/* Mobile Menu */}
+      
       <div className={clsx(
         "md:hidden fixed top-20 left-0 right-0 z-40 bg-morphism-surface backdrop-blur-md border-b border-morphism-border",
         "transition-all duration-300 ease-in-out overflow-hidden",

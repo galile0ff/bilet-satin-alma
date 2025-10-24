@@ -1,6 +1,6 @@
 import { BusTrip } from '../types/BusTrip';
 
-const API_URL = 'http://localhost:8000/api'; // Assuming backend runs on port 8000
+const API_URL = 'http://localhost:8000/api'; // bende backend 8000 portunda çalışıyodu
 
 export const getTrips = async (from?: string | null, to?: string | null): Promise<BusTrip[]> => {
   const params = new URLSearchParams();

@@ -1,9 +1,7 @@
 import React from 'react';
-// Kurumsal bir görünüm için Font Awesome ikonları (react-icons'tan)
 import { FaGithub, FaInstagram, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope } from 'react-icons/fa';
 
 export default function Footer() {
-  // Mevcut yıl bilgisi
   const currentYear = new Date().getFullYear();
   
   return (
@@ -40,7 +38,6 @@ export default function Footer() {
             </div>
           </div>
           
-          {/* Sütun 2: Kurumsal Linkler */}
           <div className="flex flex-col gap-4">
             <h3 className="text-lg font-bold text-[var(--text-light)] dark:text-[var(--text-dark)] border-b-2 border-[var(--primary)] pb-1 w-max">
               Kurumsal
@@ -52,8 +49,7 @@ export default function Footer() {
               <li><a href="/partnerler" className="hover:text-[var(--primary)] transition-colors duration-200">Otobüs Firmaları</a></li>
             </ul>
           </div>
-          
-          {/* Sütun 3: Hızlı Linkler */}
+
           <div className="flex flex-col gap-4">
             <h3 className="text-lg font-bold text-[var(--text-light)] dark:text-[var(--text-dark)] border-b-2 border-[var(--secondary)] pb-1 w-max">
               Hizmetler
@@ -65,7 +61,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Sütun 4: İletişim Bilgileri */}
           <div className="flex flex-col gap-4">
             <h3 className="text-lg font-bold text-[var(--text-light)] dark:text-[var(--text-dark)] border-b-2 border-[var(--accent)] pb-1 w-max">
               İletişim
@@ -95,12 +90,11 @@ export default function Footer() {
 
         </div>
 
-        {/* Alt Bilgi - Telif Hakkı ve Slogan */}
         <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 dark:text-gray-400">
           <p>
-            © {currentYear} <span className="text-[var(--primary)] font-semibold">galileoff.</span> Tüm hakları şahsı münhasırıma aittir.
+            © {currentYear} <span className="text-[var(--primary)] font-semibold">galileoff.</span> Tüm haklar şahs-ı münhasırıma aittir; izinsiz kopyalanırsa ejderha nefesiyle yakılır.
           </p>
-          <p className="mt-2 md:mt-0">
+          <p className="mt-2 md:mt-0 text-gray-600 font-semibold">
             "Her dolaşan kaybolmuş değildir. - Bilge Bilbo"
           </p>
         </div>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { BusTrip } from '@/types/BusTrip';
 import { getTrips } from '@/services/busService';
+import SearchSection from '@/components/home/SearchSection';
 import TripCard from '@/components/trips/TripCard';
 import SeatGrid from '@/components/trips/SeatGrid';
 import Button from '@/components/ui/Button';
@@ -21,7 +22,7 @@ export default function Trips() {
 
   useEffect(() => {
     if (user?.role === 'company') {
-      router.push('/');
+      router.push('/trips');
     }
   }, [user, router]);
 
@@ -68,7 +69,7 @@ export default function Trips() {
           <div className="mb-8">
             <button
               onClick={() => { setSelectedTrip(null); setSelectedSeat(null); }}
-              className="flex items-center gap-2 text-brand-primary hover:text-brand-secondary transition-colors font-medium border border-brand-primary/20 hover:border-brand-primary rounded-full px-4 py-2 bg-white shadow-sm" // Daha belirgin geri butonu
+              className="flex items-center gap-2 text-brand-primary hover:text-brand-secondary transition-colors font-medium border border-brand-primary/20 hover:border-brand-primary rounded-full px-4 py-2 bg-white shadow-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -77,11 +78,9 @@ export default function Trips() {
             </button>
           </div>
 
-          {/* DÜZENLENMİŞ SEÇİM VE BİLGİ ALANLARI */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2"> 
               <h2 className="text-2xl font-bold text-brand-neutral mb-2">Yolculuk Öncesi Hazırlık</h2>
-              {/* MESAJ KARTI BAŞLANGIÇ */}
               <div className="p-4 mb-6 rounded-xl border-2 border-yellow-700/50 bg-yellow-50 shadow-md text-yellow-800">
                 <h3 className="flex items-center gap-2 font-semibold text-lg mb-1">
                   <svg className="w-6 h-6 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,9 +92,7 @@ export default function Trips() {
                   Orta Dünya'nın şartları gereği, her fani **yalnızca tek bir koltuk** seçebilir. Lütfen yerinizi dikkatlice belirleyiniz. Yanınızdaki boş koltuk bir elf, cüce veya ork tarafından doldurulabilir.
                 </p>
               </div>
-              {/* MESAJ KARTI BİTİŞ */}
 
-              {/* İPTAL POLİTİKASI KARTI BAŞLANGIÇ */}
               <div className="p-4 mb-6 rounded-xl border-2 border-blue-700/50 bg-blue-50 shadow-md text-blue-800">
                 <h3 className="flex items-center gap-2 font-semibold text-lg mb-1">
                   <svg className="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,12 +104,10 @@ export default function Trips() {
                   Biletinizi sefer saatine <strong>1 saat</strong> kalana kadar iptal edebilirsiniz. İptal durumunda ödediğiniz tutar bakiyenize iade edilecektir.
                 </p>
               </div>
-              {/* İPTAL POLİTİKASI KARTI BİTİŞ */}
 
               <SeatGrid trip={selectedTrip} selectedSeat={selectedSeat} onSeatSelect={setSelectedSeat} />
             </div>
 
-            {/* SAĞ KISIM: SEFER BİLGİLERİ (Sabit Alan) */}
             <div className="lg:col-span-1"> 
               <h2 className="text-2xl font-bold text-brand-neutral mb-4">Seferinizin Bilgileri</h2> 
               <div className="space-y-4 p-6 rounded-2xl border border-morphism-border bg-white shadow-xl"> 
@@ -164,7 +159,6 @@ export default function Trips() {
                       }
                     }}
                   >
-                    {/* Koltuk numarası seçildiğinde butonda gösterilir */}
                     Koltuk {selectedSeat ? `#${selectedSeat}` : ''} için Altın Keseni Hazırla (●'◡'●)
                   </Button>
                   {showAuthWarning && (
@@ -191,32 +185,36 @@ export default function Trips() {
     );
   }
 
-  // SEFER LİSTESİ GÖRÜNÜMÜ
   return (
-    <section className="section-spacing">
-      <div className="container-minimal">
-        {trips.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-brand-light rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 018 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-brand-neutral mb-2">Sefer Bulunamadı</h3>
-            <p className="text-brand-neutral/70">Şu anda görüntülenecek sefer bulunmuyor.</p>
-          </div>
-        ) : (
-          <div className="grid gap-6">
-            {trips.map(trip => (
-              <TripCard
-                key={trip.id}
-                trip={trip}
-                onSelectTrip={setSelectedTrip}
-              />
-            ))}
-          </div>
-        )}
+    <>
+      <div className="mt-[-4.5rem]">
+        <SearchSection />
       </div>
-    </section>
+      <section className="pt-2 pb-12">
+        <div className="container-minimal">
+          {trips.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-brand-light rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 018 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-brand-neutral mb-2">Sefer Bulunamadı</h3>
+              <p className="text-brand-neutral/70">Şu anda görüntülenecek sefer bulunmuyor.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {trips.map(trip => (
+                <TripCard
+                  key={trip.id}
+                  trip={trip}
+                  onSelectTrip={setSelectedTrip}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 }

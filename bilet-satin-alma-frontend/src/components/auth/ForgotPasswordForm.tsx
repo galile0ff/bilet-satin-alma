@@ -18,9 +18,7 @@ export default function ForgotPasswordForm() {
     setSuccess(false);
 
     try {
-      // Şifre sıfırlama işlemi burada yapılacak
       console.log('Şifre sıfırlama isteği:', email);
-      // Simülasyon için
       await new Promise(resolve => setTimeout(resolve, 1000));
       setSuccess(true);
     } catch (err) {

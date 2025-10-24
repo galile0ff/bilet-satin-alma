@@ -18,8 +18,6 @@ if ($request_method === 'OPTIONS') {
     exit();
 }
 
-
-// Basic router
 switch ($request_uri) {
     case '/api/register':
         if ($request_method === 'POST') {
@@ -98,6 +96,16 @@ switch ($request_uri) {
     case '/api/coupons/validate':
         if ($request_method === 'POST') {
             handle_validate_coupon($pdo, $request_body);
+        }
+        break;
+    case '/api/public-coupons':
+        if ($request_method === 'GET') {
+            handle_get_public_coupons($pdo);
+        }
+        break;
+    case '/api/public-companies':
+        if ($request_method === 'GET') {
+            handle_get_public_companies($pdo);
         }
         break;
     case '/api/admin/users':
@@ -187,7 +195,6 @@ function handle_company_register($pdo, $data) {
     try {
         $pdo->beginTransaction();
 
-        // Check if company name already exists
         $stmt = $pdo->prepare('SELECT id FROM "Bus_Company" WHERE name = :name');
         $stmt->execute(['name' => $data['company_name']]);
         if ($stmt->fetch()) {
@@ -197,7 +204,6 @@ function handle_company_register($pdo, $data) {
             return;
         }
 
-        // Check if email already exists
         $stmt = $pdo->prepare('SELECT id FROM "User" WHERE email = :email');
         $stmt->execute(['email' => $data['email']]);
         if ($stmt->fetch()) {
@@ -207,7 +213,6 @@ function handle_company_register($pdo, $data) {
             return;
         }
 
-        // Create company
         $company_id = uniqid();
         $created_at = date('Y-m-d H:i:s');
         $stmt = $pdo->prepare(
@@ -220,7 +225,6 @@ function handle_company_register($pdo, $data) {
             'created_at' => $created_at
         ]);
 
-        // Create user
         $user_id = uniqid();
         $hashed_password = password_hash($data['password'], PASSWORD_BCRYPT);
         $stmt = $pdo->prepare(
@@ -377,8 +381,8 @@ function handle_get_trips($pdo) {
                 'price' => $trip['price'],
                 'bookedSeats' => array_map('intval', $booked_seats),
                 'capacity' => $trip['capacity'],
-                'busType' => '2+1', // Placeholder
-                'features' => ['Wifi', 'USB', 'TV'] // Placeholder
+                'busType' => '2+1', 
+                'features' => ['Wifi', 'USB', 'TV'] 
             ];
         }, $trips_from_db);
 
@@ -488,7 +492,6 @@ function handle_update_balance($pdo, $data) {
 
         $pdo->commit();
 
-        // Return the updated user object
         $stmt = $pdo->prepare('SELECT * FROM "User" WHERE id = :id');
         $stmt->execute(['id' => $user_id]);
         $updated_user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -600,7 +603,6 @@ function handle_purchase_ticket($pdo, $data) {
             ]);
         }
 
-        // Book the seat
         $stmt = $pdo->prepare(
             'INSERT INTO "Booked_Seats" (id, ticket_id, seat_number, created_at)
              VALUES (:id, :ticket_id, :seat_number, :created_at)'
@@ -614,7 +616,6 @@ function handle_purchase_ticket($pdo, $data) {
 
         $pdo->commit();
 
-        // Return updated user
         $stmt = $pdo->prepare('SELECT * FROM "User" WHERE id = :id');
         $stmt->execute(['id' => $user_id]);
         $updated_user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -641,7 +642,6 @@ function handle_cancel_ticket($pdo, $ticket_id) {
     try {
         $pdo->beginTransaction();
 
-        // First, verify the ticket belongs to the user and get trip info
         $stmt = $pdo->prepare(
             'SELECT t.*, tr.departure_time 
              FROM "Tickets" t
@@ -658,7 +658,6 @@ function handle_cancel_ticket($pdo, $ticket_id) {
             return;
         }
 
-        // Check if the cancellation is within the allowed time
         $departure_time = new DateTime($ticket['departure_time'], new DateTimeZone('Europe/Istanbul'));
         $cancellation_limit = (new DateTime('now', new DateTimeZone('Europe/Istanbul')))->add(new DateInterval('PT1H'));
 
@@ -669,21 +668,17 @@ function handle_cancel_ticket($pdo, $ticket_id) {
             return;
         }
 
-        // Refund the ticket price to the user's balance
         $stmt = $pdo->prepare('UPDATE "User" SET balance = balance + :amount WHERE id = :id');
         $stmt->execute(['amount' => $ticket['total_price'], 'id' => $user_id]);
 
-        // Delete the ticket
         $stmt = $pdo->prepare('DELETE FROM "Tickets" WHERE id = :id');
         $stmt->execute(['id' => $ticket_id]);
         
-        // Delete from Booked_Seats as well
         $stmt = $pdo->prepare('DELETE FROM "Booked_Seats" WHERE ticket_id = :ticket_id');
         $stmt->execute(['ticket_id' => $ticket_id]);
 
         $pdo->commit();
 
-        // Return updated user
         $stmt = $pdo->prepare('SELECT * FROM "User" WHERE id = :id');
         $stmt->execute(['id' => $user_id]);
         $updated_user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -727,7 +722,6 @@ function handle_get_company_trips($pdo) {
     }
 
     try {
-        // Get company_id from user_id
         $stmt = $pdo->prepare('SELECT company_id FROM "User" WHERE id = :id AND role = "company"');
         $stmt->execute(['id' => $user_id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -816,7 +810,6 @@ function handle_create_trip($pdo, $data) {
             return;
         }
 
-        // Check for duplicate trip
         $stmt = $pdo->prepare(
             'SELECT id FROM "Trips" 
              WHERE company_id = :company_id 
@@ -946,7 +939,6 @@ function handle_update_trip($pdo, $trip_id, $data) {
             return;
         }
 
-        // Check for duplicate trip on update
         $stmt = $pdo->prepare(
             'SELECT id FROM "Trips" 
              WHERE company_id = :company_id 
@@ -981,23 +973,19 @@ function handle_update_trip($pdo, $trip_id, $data) {
             $affected_tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($affected_tickets as $ticket) {
-                // Refund user
                 $stmt = $pdo->prepare('UPDATE "User" SET balance = balance + :amount WHERE id = :id');
                 $stmt->execute(['amount' => $ticket['total_price'], 'id' => $ticket['user_id']]);
 
-                // Get company name
                 $stmt = $pdo->prepare('SELECT name FROM "Bus_Company" WHERE id = :id');
                 $stmt->execute(['id' => $trip['company_id']]);
                 $company = $stmt->fetch(PDO::FETCH_ASSOC);
                 $company_name = $company['name'];
 
-                // Get user name
                 $stmt = $pdo->prepare('SELECT full_name FROM "User" WHERE id = :id');
                 $stmt->execute(['id' => $ticket['user_id']]);
                 $ticket_user = $stmt->fetch(PDO::FETCH_ASSOC);
                 $user_full_name = $ticket_user['full_name'];
 
-                // Create notification
                 $notification_id = uniqid();
                 $created_at = date('Y-m-d H:i:s');
                 $message = "{$company_name} sına ait {$trip['departure_city']} - {$trip['destination_city']} seferinde, at arabalarının sayısı azaldı ve yolculuk rüzgârın iradesine bırakıldı. 🐎\nNe yazık ki koltuğunuz artık bu kervanın sınırları dışında kaldı.\nBüyülü biletiniz iptal edildi ve altınlarınız kesenize geri döndü. 💰\nYeni bir seferde sizi yeniden ağırlamaktan onur duyarız {$user_full_name}";
@@ -1013,7 +1001,6 @@ function handle_update_trip($pdo, $trip_id, $data) {
                     'created_at' => $created_at
                 ]);
 
-                // Delete ticket and booked seat
                 $stmt = $pdo->prepare('DELETE FROM "Booked_Seats" WHERE ticket_id = :ticket_id');
                 $stmt->execute(['ticket_id' => $ticket['ticket_id']]);
                 $stmt = $pdo->prepare('DELETE FROM "Tickets" WHERE id = :ticket_id');
@@ -1076,7 +1063,6 @@ function handle_delete_trip($pdo, $trip_id) {
         }
         $company_id = $user['company_id'];
 
-        // Check if trip belongs to the company
         $stmt = $pdo->prepare('SELECT * FROM "Trips" WHERE id = :id AND company_id = :company_id');
         $stmt->execute(['id' => $trip_id, 'company_id' => $company_id]);
         $trip = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -1088,23 +1074,19 @@ function handle_delete_trip($pdo, $trip_id) {
             return;
         }
 
-        // Find all tickets for this trip
         $stmt = $pdo->prepare('SELECT * FROM "Tickets" WHERE trip_id = :trip_id');
         $stmt->execute(['trip_id' => $trip_id]);
         $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($tickets as $ticket) {
-            // Refund the user
             $stmt = $pdo->prepare('UPDATE "User" SET balance = balance + :amount WHERE id = :id');
             $stmt->execute(['amount' => $ticket['total_price'], 'id' => $ticket['user_id']]);
 
-            // Get company name
             $stmt = $pdo->prepare('SELECT name FROM "Bus_Company" WHERE id = :id');
             $stmt->execute(['id' => $company_id]);
             $company = $stmt->fetch(PDO::FETCH_ASSOC);
             $company_name = $company['name'];
 
-            // Create notification for the user
             $message = "{$company_name} firmasının {$trip['departure_city']} - {$trip['destination_city']} seferi iptal edildiği için bilet ücretiniz olan {$ticket['total_price']} TL bakiyenize iade edildi.";
             $stmt = $pdo->prepare(
                 'INSERT INTO "Notifications" (id, user_id, message, created_at) 
@@ -1117,14 +1099,12 @@ function handle_delete_trip($pdo, $trip_id) {
                 'created_at' => date('Y-m-d H:i:s')
             ]);
 
-            // Delete booked seat and ticket
             $stmt = $pdo->prepare('DELETE FROM "Booked_Seats" WHERE ticket_id = :ticket_id');
             $stmt->execute(['ticket_id' => $ticket['id']]);
             $stmt = $pdo->prepare('DELETE FROM "Tickets" WHERE id = :id');
             $stmt->execute(['id' => $ticket['id']]);
         }
 
-        // Delete the trip
         $stmt = $pdo->prepare('DELETE FROM "Trips" WHERE id = :id');
         $stmt->execute(['id' => $trip_id]);
 
@@ -1212,11 +1192,9 @@ function handle_update_company($pdo, $data) {
         }
         $company_id = $user['company_id'];
 
-        // Update company name
         $stmt = $pdo->prepare('UPDATE "Bus_Company" SET name = :name WHERE id = :id');
         $stmt->execute(['name' => $data['name'], 'id' => $company_id]);
 
-        // Update company representative's name
         $stmt = $pdo->prepare('UPDATE "User" SET full_name = :full_name WHERE id = :id');
         $stmt->execute(['full_name' => $data['representative'], 'id' => $user_id]);
 
@@ -1262,7 +1240,6 @@ function handle_create_coupon($pdo, $data) {
             return;
         }
 
-        // Check for duplicate coupon code system-wide
         $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE code = :code');
         $stmt->execute(['code' => $data['code']]);
         if ($stmt->fetch()) {
@@ -1356,7 +1333,6 @@ function handle_update_coupon($pdo, $coupon_id, $data) {
         }
         $company_id = $user['company_id'];
 
-        // Check if coupon belongs to the company
         $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE id = :id AND company_id = :company_id');
         $stmt->execute(['id' => $coupon_id, 'company_id' => $company_id]);
         if (!$stmt->fetch()) {
@@ -1377,7 +1353,6 @@ function handle_update_coupon($pdo, $coupon_id, $data) {
             return;
         }
 
-        // Prevent updating coupons to a past expiry date
         $expiry_dt = new DateTime($data['expiry_date']);
         $today = new DateTime('today');
         if ($expiry_dt < $today) {
@@ -1386,7 +1361,6 @@ function handle_update_coupon($pdo, $coupon_id, $data) {
             return;
         }
 
-        // Check for duplicate coupon code on update system-wide
         $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE code = :code AND id != :coupon_id');
         $stmt->execute(['code' => $data['code'], 'coupon_id' => $coupon_id]);
         if ($stmt->fetch()) {
@@ -1440,7 +1414,6 @@ function handle_delete_coupon($pdo, $coupon_id) {
         }
         $company_id = $user['company_id'];
 
-        // Check if coupon belongs to the company
         $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE id = :id AND company_id = :company_id');
         $stmt->execute(['id' => $coupon_id, 'company_id' => $company_id]);
         if (!$stmt->fetch()) {
@@ -1481,7 +1454,6 @@ function handle_get_trip_passengers($pdo, $trip_id) {
         }
         $company_id = $user['company_id'];
 
-        // Check if trip belongs to the company
         $stmt = $pdo->prepare('SELECT id FROM "Trips" WHERE id = :id AND company_id = :company_id');
         $stmt->execute(['id' => $trip_id, 'company_id' => $company_id]);
         if (!$stmt->fetch()) {
@@ -1532,7 +1504,6 @@ function handle_company_cancel_ticket($pdo, $ticket_id) {
         }
         $company_id = $company_user['company_id'];
 
-        // Get ticket and trip info
         $stmt = $pdo->prepare(
             'SELECT t.*, tr.company_id as trip_company_id, tr.departure_city, tr.destination_city
              FROM "Tickets" t
@@ -1549,29 +1520,24 @@ function handle_company_cancel_ticket($pdo, $ticket_id) {
             return;
         }
 
-        // Refund the ticket price to the user's balance
         $stmt = $pdo->prepare('UPDATE "User" SET balance = balance + :amount WHERE id = :id');
         $stmt->execute(['amount' => $ticket['total_price'], 'id' => $ticket['user_id']]);
 
-        // Get company name
         $stmt = $pdo->prepare('SELECT name FROM "Bus_Company" WHERE id = :id');
         $stmt->execute(['id' => $company_id]);
         $company = $stmt->fetch(PDO::FETCH_ASSOC);
         $company_name = $company['name'];
 
-        // Get user name
         $stmt = $pdo->prepare('SELECT full_name FROM "User" WHERE id = :id');
         $stmt->execute(['id' => $ticket['user_id']]);
         $ticket_user = $stmt->fetch(PDO::FETCH_ASSOC);
         $user_full_name = $ticket_user['full_name'];
 
-        // Get seat number
         $stmt = $pdo->prepare('SELECT seat_number FROM "Booked_Seats" WHERE ticket_id = :ticket_id');
         $stmt->execute(['ticket_id' => $ticket_id]);
         $seat = $stmt->fetch(PDO::FETCH_ASSOC);
         $seat_number = $seat['seat_number'];
 
-        // Create notification
         $notification_id = uniqid();
         $created_at = date('Y-m-d H:i:s');
         $message = "{$company_name} firması, {$ticket['departure_city']} - {$ticket['destination_city']} seferindeki satın aldığınız {$seat_number} numaralı koltuğu iptal etti. Ödediğiniz altınlar bakiyenize geri döndü. 💰✨\nYeni bir yolculukta sizi yeniden ağırlamaktan onur duyarız, {$user_full_name}";
@@ -1587,11 +1553,9 @@ function handle_company_cancel_ticket($pdo, $ticket_id) {
             'created_at' => $created_at
         ]);
 
-        // Delete the ticket
         $stmt = $pdo->prepare('DELETE FROM "Tickets" WHERE id = :id');
         $stmt->execute(['id' => $ticket_id]);
 
-        // Delete from Booked_Seats as well
         $stmt = $pdo->prepare('DELETE FROM "Booked_Seats" WHERE ticket_id = :ticket_id');
         $stmt->execute(['ticket_id' => $ticket_id]);
 
@@ -1641,7 +1605,6 @@ function handle_get_coupon_usage($pdo, $coupon_id) {
         }
         $company_id = $user['company_id'];
 
-        // Check if coupon belongs to the company
         $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE id = :id AND company_id = :company_id');
         $stmt->execute(['id' => $coupon_id, 'company_id' => $company_id]);
         if (!$stmt->fetch()) {
@@ -1773,17 +1736,15 @@ function handle_admin_create_coupon($pdo, $data) {
 
     $company_id = !empty($data['company_id']) ? $data['company_id'] : null;
 
-    // Prevent creating coupons with a past expiry date
     $expiry_dt = new DateTime($data['expiry_date']);
     $today = new DateTime('today');
     if ($expiry_dt < $today) {
         http_response_code(400);
-        echo json_encode(['message' => 'Zaman yolculuğu teşebbüsü ha! Geçmiş bir tarihe kupon oluşturulamaz.']);
+        echo json_encode(['message' => 'Zamanla oynamaya kalktın ha! Maalesef büyücüler konseyi karar aldı: geçmişe kupon basmak, zamanın dokusunu bozar. Yani evet… “Zaman yolculuğu teşebbüsü” başarısız. Kuponunu gelecekte dene; geçmiş seni beklemiyor.']);
         return;
     }
 
     try {
-        // Check for duplicate coupon code system-wide
         $stmt = $pdo->prepare('SELECT id FROM "Coupons" WHERE code = :code');
         $stmt->execute(['code' => $data['code']]);
         if ($stmt->fetch()) {
@@ -1828,11 +1789,9 @@ function handle_admin_delete_coupon($pdo, $coupon_id) {
     try {
         $pdo->beginTransaction();
 
-        // Önce kupon kullanım kayıtlarını sil
         $stmt = $pdo->prepare('DELETE FROM "Coupon_Usage" WHERE coupon_id = :coupon_id');
         $stmt->execute(['coupon_id' => $coupon_id]);
 
-        // Sonra kuponu sil
         $stmt = $pdo->prepare('DELETE FROM "Coupons" WHERE id = :id');
         $stmt->execute(['id' => $coupon_id]);
 
@@ -1939,7 +1898,6 @@ function handle_admin_update_user($pdo, $user_id, $data) {
     }
 
     try {
-        // Check if email already exists for another user
         $stmt = $pdo->prepare('SELECT id FROM "User" WHERE email = :email AND id != :id');
         $stmt->execute(['email' => $email, 'id' => $user_id]);
         if ($stmt->fetch()) {
@@ -1949,12 +1907,10 @@ function handle_admin_update_user($pdo, $user_id, $data) {
         }
 
         if (!empty($password)) {
-            // Update email and password
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
             $stmt = $pdo->prepare('UPDATE "User" SET email = :email, password = :password WHERE id = :id');
             $stmt->execute(['email' => $email, 'password' => $hashed_password, 'id' => $user_id]);
         } else {
-            // Update only email
             $stmt = $pdo->prepare('UPDATE "User" SET email = :email WHERE id = :id');
             $stmt->execute(['email' => $email, 'id' => $user_id]);
         }
@@ -1987,7 +1943,6 @@ function handle_validate_coupon($pdo, $data) {
     }
 
     try {
-        // First, find the coupon by code
         $stmt = $pdo->prepare(' 
             SELECT c.*, COUNT(cu.id) as usage_count
             FROM "Coupons" c
@@ -2004,9 +1959,7 @@ function handle_validate_coupon($pdo, $data) {
             return;
         }
 
-        // If the coupon has a company_id, it's not a global coupon
         if ($coupon['company_id'] !== null) {
-            // Check if it matches the trip's company
             $stmt = $pdo->prepare('SELECT company_id FROM "Trips" WHERE id = :trip_id');
             $stmt->execute(['trip_id' => $data['trip_id']]);
             $trip = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -2017,7 +1970,6 @@ function handle_validate_coupon($pdo, $data) {
                 return;
             }
         }
-        // If company_id is null, it's a global coupon, so we skip the company check.
 
         if (new DateTime() >= new DateTime($coupon['expiry_date'])) {
             http_response_code(410);
@@ -2034,6 +1986,52 @@ function handle_validate_coupon($pdo, $data) {
         http_response_code(200);
         echo json_encode(['message' => 'Kupon geçerli.', 'discount_rate' => $coupon['discount_rate']]);
 
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function handle_get_public_coupons($pdo) {
+    try {
+        $stmt = $pdo->query('
+            SELECT 
+                c.id,
+                c.code,
+                c.discount_rate,
+                c.usage_limit,
+                c.expiry_date,
+                COALESCE(bc.name, \'Tüm Firmalar\') as company_name,
+                COUNT(cu.id) as usage_count
+            FROM 
+                "Coupons" c
+            LEFT JOIN 
+                "Bus_Company" bc ON c.company_id = bc.id
+            LEFT JOIN 
+                "Coupon_Usage" cu ON c.id = cu.coupon_id
+            GROUP BY
+                c.id, c.code, c.discount_rate, c.usage_limit, c.expiry_date, company_name
+            ORDER BY
+                c.expiry_date DESC, c.created_at DESC
+        ');
+        
+        $coupons = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        http_response_code(200);
+        echo json_encode($coupons);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);
+    }
+}
+
+function handle_get_public_companies($pdo) {
+    try {
+        $stmt = $pdo->query('SELECT id, name, logo_path, created_at FROM "Bus_Company" ORDER BY name ASC');
+        $companies = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        http_response_code(200);
+        echo json_encode($companies);
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode(['message' => 'Database hatası: ' . $e->getMessage()]);

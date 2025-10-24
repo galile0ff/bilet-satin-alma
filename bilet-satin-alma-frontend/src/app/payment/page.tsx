@@ -8,18 +8,12 @@ import { BusTrip } from '@/types/BusTrip';
 import Button from '@/components/ui/Button';
 import NotificationModal from '@/components/ui/NotificationModal';
 
-// ----------------------------------------------------------------------
-// TYPESCRIPT: DetailItem Bileşeni için Prop Tanımı
-// ----------------------------------------------------------------------
 interface DetailItemProps {
     title: string;
     value: string | number; 
     isHighlighted?: boolean;
 }
 
-// ----------------------------------------------------------------------
-// YARDIMCI BİLEŞEN: Detay Satırı
-// ----------------------------------------------------------------------
 const DetailItem: React.FC<DetailItemProps> = ({ title, value, isHighlighted = false }) => (
     <div className={`flex justify-between items-center py-3 px-1 transition-all duration-300 ${
         isHighlighted 
@@ -31,10 +25,6 @@ const DetailItem: React.FC<DetailItemProps> = ({ title, value, isHighlighted = f
     </div>
 );
 
-
-// ----------------------------------------------------------------------
-// ANA BİLEŞEN: PaymentPage
-// ----------------------------------------------------------------------
 export default function PaymentPage() {
     const { user, loading, updateUser } = useAuth();
     const router = useRouter();
@@ -46,14 +36,12 @@ export default function PaymentPage() {
     const [discount, setDiscount] = useState<number>(0);
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-    // Kullanıcı girişi kontrolü
     useEffect(() => {
         if (!loading && !user) {
             router.push('/login');
         }
     }, [user, loading, router]);
 
-    // URL parametrelerinden sefer ve koltuk bilgisini çekme
     useEffect(() => {
         const tripId = searchParams.get('tripId');
         const seatNumber = searchParams.get('seat');
@@ -69,7 +57,6 @@ export default function PaymentPage() {
         }
     }, [searchParams]);
 
-    // Yükleme ve veri kontrolü
     if (loading || !user) {
         return (
             <div className="section-spacing flex items-center justify-center">
@@ -89,7 +76,6 @@ export default function PaymentPage() {
         );
     }
 
-    // Bakiye kontrolü
     const priceToPay = finalPrice ?? trip.price;
     const isBalanceSufficient = user.balance >= priceToPay;
     const missingAmount = priceToPay - user.balance;
@@ -154,12 +140,9 @@ export default function PaymentPage() {
             <h1 className="text-4xl font-extrabold mb-4 text-gray-900">Fatura Bilgisi: Yolculuk Onayı</h1>
             <p className="text-gray-600 mb-8">Bu yolculuğa çıkmadan önceki son adımlarınız.</p>
             
-            {/* ANA İÇERİK: ÜÇ SÜTUNLU DÜZEN (Detaylar ve Ödeme) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                {/* SOL KISIM: YOLCULUK DETAYLARI */}
                 <div className="lg:col-span-2 space-y-8">
-                    {/* Sefer Bilgileri Kartı */}
                     <div className="p-8 bg-white rounded-3xl shadow-2xl border border-gray-100">
                         <h2 className="text-3xl font-extrabold mb-6 text-brand-primary flex items-center gap-3 border-b pb-3 border-brand-primary/20">
                             <svg className="w-8 h-8 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2h-1v-4h1z" /></svg>
@@ -181,14 +164,12 @@ export default function PaymentPage() {
                         </div>
                     </div>
 
-                    {/* Fiyat ve Özet Kartı */}
                     <div className="p-8 bg-white rounded-3xl shadow-2xl border border-gray-100">
                         <h2 className="text-2xl font-bold mb-4 text-gray-800 flex items-center gap-3">
                             <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m4 2h.01M16 18H9a2 2 0 01-2-2v-3a2 2 0 012-2h7l4-2v7l-4 2z" /></svg>
                             Fatura Özeti
                         </h2>
                         <div className="space-y-3 pt-2">
-                            {/* Kupon Kodu Alanı */}
                             <div className="flex items-center gap-2 pt-2">
                                 <input
                                     type="text"
@@ -200,7 +181,6 @@ export default function PaymentPage() {
                                 <Button onClick={handleApplyCoupon} variant="secondary" className="h-full">Uygula</Button>
                             </div>
 
-                            {/* Fiyat Detayları */}
                             <DetailItem title="Bilet Fiyatı" value={`${trip.price.toFixed(2)} TL`} />
                             {discount > 0 && (
                                 <DetailItem title="Kupon İndirimi" value={`- ${discount.toFixed(2)} TL`} isHighlighted />
@@ -213,7 +193,6 @@ export default function PaymentPage() {
                     </div>
                 </div>
                 
-                {/* SAĞ KISIM: BAKİYE VE ONAY BUTONU (Sticky) */}
                 <div className="lg:col-span-1">
                     <div className="sticky top-12 p-6 bg-yellow-50 rounded-3xl shadow-2xl border-2 border-yellow-300">
                         <h3 className="text-2xl font-extrabold mb-4 text-gray-900">Kese Durumu</h3>
@@ -229,7 +208,6 @@ export default function PaymentPage() {
                             </div>
                         </div>
                         
-                        {/* ONAY BUTONU VEYA YETERSİZ BAKİYE UYARISI */}
                         {isBalanceSufficient ? (
                           <Button 
                             variant="primary" 

@@ -10,16 +10,20 @@ export default function PartnerlerPage() {
     { name: 'Hobbiton Hopper', description: 'Yeşil vadilere özel kırsal servis', logo: '🍂' },
   ];
 
+  const PRIMARY_COLOR = 'text-green-600';
+  const SECOND_COLOR = 'text-red-600';
+
   return (
     <div className="min-h-screen bg-[var(--bg-light)] py-12">
       <div className="max-w-6xl mx-auto px-6">
-        <h1 className="text-4xl font-bold text-[var(--text-light)] dark:text-[var(--text-dark)] mb-8 text-center">
-          Otobüs Firmaları
-        </h1>
-
-        <p className="text-lg text-gray-600 dark:text-gray-400 mb-12 text-center max-w-3xl mx-auto">
-          Orta Dünya'nın en güvenilir otobüs firmalarıyla işbirliği yapıyoruz. Her firma, kendi bölgesinde uzmanlaşmış ve kaliteli hizmet sunmaktadır.
-        </p>
+        <header className="text-center mb-16">
+          <h1 className={`text-5xl font-extrabold text-gray-900 mb-4 tracking-tight`}>
+            <span className={PRIMARY_COLOR}>Önde Gelen</span> Otobüs Firmalarımız
+          </h1>
+          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+            Orta Dünya'nın en güvenilir otobüs firmalarıyla işbirliği yapıyoruz. Her firma, kendi bölgesinde uzmanlaşmış ve kaliteli hizmet sunmaktadır.
+          </p>
+        </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {partners.map((partner, index) => (
@@ -38,16 +42,16 @@ export default function PartnerlerPage() {
           ))}
         </div>
 
-        <div className="mt-12 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/20 p-8 rounded-xl text-center">
-          <h2 className="text-2xl font-semibold text-[var(--primary)] mb-4">
-            Orta Dünya yollarında kendi firmanızı parlatmak ister misiniz?
+       <div className="mt-20 p-12 rounded-2xl text-center shadow-inner-lg border border-gray-300">
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            Orta Dünya yollarında <span className={PRIMARY_COLOR}>galileoff.</span> ile kendi firmanızı parlatmak ister misiniz?
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Orta Dünya’nın yollarında firmanız öne çıksın. Binlerce yolcuya ulaşın, hizmetinizi tüm diyar duysun.
+          <p className="text-gray-700 mb-8 max-w-3xl mx-auto">
+            Orta Dünya yollarında firmanız öne çıksın. Binlerce yolcuya ulaşın, hizmetinizi tüm diyar duysun. <span className={SECOND_COLOR}>Ne Gandalf, ne ejderha… sadece işini bilen bir marka.</span>
           </p>
           <a
             href="/support"
-            className="inline-block bg-[var(--primary)] text-white px-6 py-3 rounded-xl hover:bg-[var(--primary)]/90 transition-colors duration-300"
+            className={`inline-block bg-black text-white px-8 py-3 rounded-xl font-bold shadow-md transform active:shadow-inner active:scale-95 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-400/50`}
           >
             İletişime Geçin
           </a>

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ===============================
-   THEME VARIABLES
+   TEMA VARSAYILANLARI
 ================================*/
 :root {
   --bg: #F7FDF9;
@@ -18,7 +18,7 @@
 }
 
 /* ===============================
-   BASE STYLES
+   TEMEL STİLLER
 ================================*/
 html {
   transition: color 0.3s ease, background-color 0.3s ease;
@@ -36,7 +36,6 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-/* Minimalist scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -52,7 +51,7 @@ body {
 }
 
 /* ===============================
-   COMPONENT STYLES
+   KOMPONENET HEDELERİNİN STİLLERİ
 ================================*/
 .morphism-card {
   background: var(--card-bg);
@@ -69,7 +68,7 @@ body {
   transform: translateY(-4px);
 }
 
-/* Button styles */
+/* BUTON STİLLERİ */
 .btn-minimal {
   padding: 12px 24px;
   background: var(--primary);
@@ -110,7 +109,7 @@ body {
   border-color: var(--primary);
 }
 
-/* Input styles */
+/* İNPUT STİLLERİ */
 .input-minimal {
   width: 100%;
   padding: 12px 16px;
@@ -136,7 +135,7 @@ body {
 }
 
 /* ===============================
-   TYPOGRAPHY
+   YAZI HEDELERİ
 ================================*/
 .text-hero {
   font-size: 2.25rem;
@@ -171,7 +170,7 @@ body {
 }
 
 /* ===============================
-   LAYOUT HELPERS
+   YARDIMCILAR
 ================================*/
 .container-minimal {
   max-width: 80rem;
@@ -208,7 +207,7 @@ body {
 }
 
 /* ===============================
-   ANIMATIONS
+   ANİMASYONLAR
 ================================*/
 .animate-morph-in {
   animation: morphIn 0.6s ease-out;

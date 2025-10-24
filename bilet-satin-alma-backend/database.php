@@ -102,7 +102,7 @@ class Database {
         $stmt = $this->pdo->prepare('SELECT id FROM "User" WHERE email = ?');
         $stmt->execute(['admin@galileoff.com']);
         if ($stmt->fetch()) {
-            return; // Admin already exists
+            return;
         }
 
         $adminId = uniqid();

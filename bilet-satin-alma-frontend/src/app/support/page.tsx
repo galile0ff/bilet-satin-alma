@@ -26,7 +26,6 @@ export default function SupportPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-light)] py-16">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Başlık */}
         <h1 className="text-4xl font-bold text-center text-[var(--text-light)] dark:text-[var(--text-dark)] mb-6">
           Destek ve Yardım
         </h1>
@@ -36,9 +35,7 @@ export default function SupportPage() {
           Kadim büyücülerden oluşan destek ekibimiz size her adımda eşlik ediyor.
         </p>
 
-        {/* Form ve SSS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* İletişim Formu */}
           <div>
             <h2 className="text-2xl font-semibold text-[var(--primary)] mb-4">
               Bize Ulaşın
@@ -49,7 +46,6 @@ export default function SupportPage() {
             <ContactForm />
           </div>
 
-          {/* SSS */}
           <div>
             <h2 className="text-2xl font-semibold text-[var(--primary)] mb-4">
               Sık Sorulan Sorular

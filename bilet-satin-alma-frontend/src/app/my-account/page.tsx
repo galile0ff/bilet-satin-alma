@@ -16,7 +16,6 @@ export default function MyAccountPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [isAddingBalance, setIsAddingBalance] = useState(false);
-  // Bakiye girişi için string tutmak, sıfırla başlama sorununu çözer
   const [balanceToAdd, setBalanceToAdd] = useState('');
 
   useEffect(() => {
@@ -66,17 +65,14 @@ export default function MyAccountPage() {
     setTickets(prevTickets => prevTickets.filter(ticket => ticket.id !== ticketId));
   };
   
-  // Bakiye kutucuğu sorununu çözen fonksiyon
   const handleBalanceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Sadece rakam veya boş string olmasına izin ver (böylece 0 ile başlama sorunu kalmaz)
     if (value === '' || /^[0-9]+$/.test(value)) {
       setBalanceToAdd(value);
     }
   };
 
   const handleAddBalance = async () => {
-    // Sayıyı integer'a çevir, boşsa veya geçerli sayı değilse 0 kullan
     const amount = parseInt(balanceToAdd, 10) || 0; 
     
     if (amount <= 0) {
@@ -88,7 +84,7 @@ export default function MyAccountPage() {
       const response = await updateBalance(amount);
       updateUserContext(response.user);
       setIsAddingBalance(false);
-      setBalanceToAdd(''); // Kutucuğu temizle
+      setBalanceToAdd('');
     } catch (error: any) {
       alert(`Bakiyeni güncellerken bir hata oluştu: ${error.message}`);
     }
@@ -109,14 +105,11 @@ export default function MyAccountPage() {
       </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        {/* === GEZGİN BİLGİLERİ KARTI === */}
         <div className="md:col-span-1 bg-white p-6 rounded-xl shadow-lg border border-gray-100 h-fit">
           <h2 className="text-2xl font-bold mb-5 text-primary">Hesap Bilgileri</h2>
           
           <div className="space-y-5">
-            
-            {/* Ad Soyad Bölümü */}
+
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="flex justify-between items-center">
                 <strong className="text-sm text-gray-500">Ad Soyad</strong>
@@ -148,13 +141,11 @@ export default function MyAccountPage() {
               )}
             </div>
 
-            {/* Email Bölümü */}
             <div className="p-3 bg-gray-50 rounded-lg">
               <strong className="text-sm text-gray-500 block mb-1">Email Adresi</strong>
               <p className="text-lg font-semibold text-gray-800">{user.email}</p>
             </div>
             
-            {/* Bakiye Bölümü */}
             <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
               <div className="flex justify-between items-center">
                 <strong className="text-sm text-gray-500">Mevcut Bakiye 💰</strong>
@@ -170,7 +161,6 @@ export default function MyAccountPage() {
               <p className="text-3xl font-extrabold text-green-700 mt-1">{user.balance} <span className="text-xl font-semibold">TL</span></p>
             </div>
 
-            {/* Bakiye Ekleme Formu */}
             {isAddingBalance && (
               <div className="p-3 border border-dashed border-gray-300 rounded-lg">
                 <Input
@@ -186,7 +176,6 @@ export default function MyAccountPage() {
               </div>
             )}
             
-            {/* Çıkış Yap Düğmesi */}
             <Button onClick={logout} variant="secondary" className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white">
               Çıkış Yap
             </Button>
@@ -194,7 +183,6 @@ export default function MyAccountPage() {
           </div>
         </div>
 
-        {/* === BİLETLER KARTI === */}
         <div className="md:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
           <h2 className="text-2xl font-bold mb-5 text-primary">Gelecek Yolculukların 🎫</h2>
           

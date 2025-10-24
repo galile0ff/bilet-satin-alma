@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { BusTrip } from '@/types/BusTrip';
 import { getTrips } from '@/services/busService';
 import TripCard from './TripCard';
-import TripFilters from './TripFilters';
-import Card from '@/components/ui/Card';
 
 export default function TripList() {
   const [trips, setTrips] = useState<BusTrip[]>([]);

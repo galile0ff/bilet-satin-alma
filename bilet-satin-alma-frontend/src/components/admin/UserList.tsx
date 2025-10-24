@@ -143,7 +143,7 @@ const UserList: React.FC = () => {
         throw new Error(errorData.message || 'Kullanıcı güncellenemedi');
       }
 
-      await fetchUsers(); // Re-fetch users to get updated data
+      await fetchUsers();
       setEditingUser(null);
     } catch (err: any) {
       console.error('Kullanıcı güncellenirken hata:', err);
@@ -211,7 +211,6 @@ const UserList: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.company_id || '—'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center space-x-2">
                     <button onClick={() => setEditingUser(user)} className="text-blue-500 hover:text-blue-700 transition-colors"><Pencil size={16} /></button>
-                    {/* Admin rolündeki kullanıcılar için silme butonunu gösterme */}
                     {user.role !== 'admin' && (
                       <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 transition-colors"><Trash2 size={16} /></button>
                     )}
