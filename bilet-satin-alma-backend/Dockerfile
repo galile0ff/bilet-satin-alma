@@ -1,12 +1,12 @@
 FROM php:8.2-apache
 
-# Composer ekle
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# PHP dosyalarını kopyala
 COPY . /var/www/html/
 
-# Apache mod rewrite aktif et
+RUN chown -R www-data:www-data /var/www/html/data
+
+COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
+
 RUN a2enmod rewrite
 
 EXPOSE 80

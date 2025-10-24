@@ -3,7 +3,7 @@ services:
     build: ./bilet-satin-alma-backend
     container_name: php-backend
     ports:
-      - "8080:80"
+      - "8000:80"
     networks:
       - my-network
 
