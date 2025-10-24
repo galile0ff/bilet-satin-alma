@@ -16,7 +16,7 @@
 
 Bu proje, kullanıcıların otobüs biletlerini online olarak aramasını, seçmesini ve satın almasını sağlayan bir web uygulamasıdır. Firmalar ise kendi seferlerini ve otobüslerini yönetebilirler.
 
-## ✨ Özellikler
+## Özellikler
 
 - Kullanıcı ve Firma rolleri
 - Sefer arama ve listeleme
@@ -25,11 +25,11 @@ Bu proje, kullanıcıların otobüs biletlerini online olarak aramasını, seçm
 - Yönetici paneli (kullanıcı ve firma yönetimi)
 
 
-## 🧪 Proje Test Hesapları
+## Proje Test Hesapları
 
 Bu hesaplar, uygulamanın farklı rollerle (admin, user, company) test edilebilmesi için hazırlanmıştır.
 
-### 👤 Admin Hesabı
+### Admin Hesabı (admin)
 
 Tüm site yetkilerine sahip yönetici hesabı.
 
@@ -37,7 +37,7 @@ Tüm site yetkilerine sahip yönetici hesabı.
 |-----------------------|------------|
 | `admin@galileoff.com` | `faulkner` |
 
-### 🚶 Gezgin (Kullanıcı) Hesapları
+### Gezgin (user) Hesapları
 
 Sistem üzerinden bilet arayan ve satın alan standart kullanıcı hesapları.
 
@@ -46,7 +46,7 @@ Sistem üzerinden bilet arayan ve satın alan standart kullanıcı hesapları.
 | Thranduil Ayışığı  | `moon@user.com` | `gezgin` |
 | Vaerion Duskmantle | `vae@user.com`  | `gezgin` |
 
-### 🚌 Firma (Otobüs İşletmesi) Hesapları
+### Firma (company) Hesapları
 
 Sisteme kayıtlı, sefer ve otobüs yönetimi yapan firma yetkilisi hesapları.
 
@@ -54,16 +54,8 @@ Sisteme kayıtlı, sefer ve otobüs yönetimi yapan firma yetkilisi hesapları.
 |--------------------|-------------------|------------------------|------------|
 | Shadowfax Express  | Morwen Yolışığı   | `morwen@shadowfax.com` | `shadow`   |
 | Lothlórien Glide   | Elenwë Mithrellas | `elenwe@loth.com`      | `lothlor`  |
+| Lothlórien Glide   | Thalion Eärendur  | `thalion@loth.com`     | `lothlor`  |
 | Mount Doom Transit | Dûrinel Forgevein | `duri@doom.com`        | `mount`    |
 | Minas Tirith Lines | Míriel Anorwen    | `miri@minas.com`       | `minas`    |
 | Khazad-dûm Coach   | Borin Granitehelm | `borin@khazad.com`     | `coach`    |
 | Hobbiton Hopper    | Frodan Tealeaf    | `frodan@hopper.com`    | `hobbiton` |
-
-|
-|
-|
-|
-|
-|
-|
-|
