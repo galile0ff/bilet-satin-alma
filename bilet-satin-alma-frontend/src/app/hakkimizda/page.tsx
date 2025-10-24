@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { Compass, Lightbulb, Scroll } from 'lucide-react';
 

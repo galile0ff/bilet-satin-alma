@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { BusTrip } from '@/types/BusTrip';
@@ -10,7 +10,7 @@ import TripCard from '@/components/trips/TripCard';
 import SeatGrid from '@/components/trips/SeatGrid';
 import Button from '@/components/ui/Button';
 
-export default function Trips() {
+function TripsContent() {
   const [trips, setTrips] = useState<BusTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTrip, setSelectedTrip] = useState<BusTrip | null>(null);
@@ -216,5 +216,22 @@ export default function Trips() {
         </div>
       </section>
     </>
+  );
+}
+
+export default function TripsPage() {
+  return (
+    <Suspense fallback={
+      <section className="section-spacing flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
+          <div className="text-lg font-medium text-brand-neutral">
+            Sefer sayfası hazırlanıyor...
+          </div>
+        </div>
+      </section>
+    }>
+      <TripsContent />
+    </Suspense>
   );
 }

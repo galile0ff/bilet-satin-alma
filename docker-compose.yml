@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./bilet-satin-alma-backend
+    container_name: php-backend
+    ports:
+      - "8080:80"
+    networks:
+      - my-network
+
+  frontend:
+    build: ./bilet-satin-alma-frontend
+    container_name: next-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge

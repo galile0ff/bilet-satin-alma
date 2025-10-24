@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { Shield, Coins, AlertTriangle, FileText } from 'lucide-react';
 
