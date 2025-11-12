@@ -12,26 +12,30 @@
 
                           
 
-# Bilet Satın Alma Projesi
+# Bilet Satın Alma Projesi 🚌💻
 
-Bu proje, kullanıcıların otobüs biletlerini online olarak aramasını, seçmesini ve satın almasını sağlayan bir web uygulamasıdır. Firmalar ise kendi seferlerini ve otobüslerini yönetebilirler.
+> Bu proje **Sibervatan Yavuzlar Takımı** için yapılan ödev çalışmasıdır.
 
-## Özellikler
+Online otobüs bileti satın alma ve yönetim uygulaması. Kullanıcılar bilet arar ve satın alır, firmalar sefer ve otobüs yönetir.
 
-- Kullanıcı ve Firma rolleri
-- Sefer arama ve listeleme
-- Koltuk seçimi ve bilet satın alma
-- Firma paneli (sefer, otobüs yönetimi)
-- Yönetici paneli (kullanıcı ve firma yönetimi)
+---
 
+## 🚀 Özellikler
 
-## Proje Test Hesapları
+| Özellik | Açıklama |
+|---------|----------|
+| 👤 Kullanıcı Rolleri | Gezgin kullanıcılar için bilet arama ve satın alma |
+| 🏢 Firma Rolleri | Sefer ve otobüs yönetimi |
+| 🔍 Sefer Arama | Tarih, kalkış-varış ve saat filtreleme |
+| 💺 Koltuk Seçimi | Dinamik koltuk seçimi ve rezervasyon |
+| ⚙️ Yönetici Paneli | Kullanıcı ve firma yönetimi |
+| 💻 Docker Destekli | Bağımlılıklar olmadan hızlı kurulum |
 
-Bu hesaplar, uygulamanın farklı rollerle (admin, user, company) test edilebilmesi için hazırlanmıştır.
+---
+
+## 🧪 Proje Test Hesapları
 
 ### Admin Hesabı (admin)
-
-Tüm site yetkilerine sahip yönetici hesabı.
 
 | E-mail                | Şifre      |
 |-----------------------|------------|
@@ -39,16 +43,12 @@ Tüm site yetkilerine sahip yönetici hesabı.
 
 ### Gezgin (user) Hesapları
 
-Sistem üzerinden bilet arayan ve satın alan standart kullanıcı hesapları.
-
 | Kullanıcı Adı      | E-mail          | Şifre    |
 |--------------------|-----------------|----------|
 | Thranduil Ayışığı  | `moon@user.com` | `gezgin` |
 | Vaerion Duskmantle | `vae@user.com`  | `gezgin` |
 
 ### Firma (company) Hesapları
-
-Sisteme kayıtlı, sefer ve otobüs yönetimi yapan firma yetkilisi hesapları.
 
 | Firma Adı          | Yetkili Adı       | E-mail                 | Şifre      |
 |--------------------|-------------------|------------------------|------------|
@@ -59,3 +59,26 @@ Sisteme kayıtlı, sefer ve otobüs yönetimi yapan firma yetkilisi hesapları.
 | Minas Tirith Lines | Míriel Anorwen    | `miri@minas.com`       | `minas`    |
 | Khazad-dûm Coach   | Borin Granitehelm | `borin@khazad.com`     | `coach`    |
 | Hobbiton Hopper    | Frodan Tealeaf    | `frodan@hopper.com`    | `hobbiton` |
+
+---
+
+## ⚙️ Nasıl Kullanılır (Docker)
+
+| Adım | Açıklama | Komut |
+|------|----------|-------|
+| 1️⃣ Klonla | Depoyu yerel bilgisayara al | `git clone https://github.com/galile0ff/bilet-satin-alma.git`<br>`cd bilet-satin-alma` |
+| 2️⃣ Docker İmajı Oluştur | Uygulama imajını hazırla | `docker compose --build` |
+| 3️⃣ Konteyneri Çalıştır | Uygulamayı başlat | `docker run -d -p 8000:80 bilet-satin-alma` |
+| 4️⃣ Aç | Tarayıcıda projeyi aç | [http://localhost:8000](http://localhost:8000) |
+
+> 🔹 Test kullanıcılarıyla giriş yaparak tüm rolleri deneyebilirsiniz.
+
+---
+
+## 📝 Notlar
+
+- Bu proje eğitim amacıyla hazırlanmıştır.  
+- Docker sayesinde bağımlılıklarla uğraşmadan çalıştırabilirsiniz.  
+- Test hesapları önceden hazırlanmıştır.
+
+---
