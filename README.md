@@ -67,9 +67,9 @@ Online otobüs bileti satın alma ve yönetim uygulaması. Kullanıcılar bilet 
 | Adım | Açıklama | Komut |
 |------|----------|-------|
 | 1️⃣ Klonla | Depoyu yerel bilgisayara al | `git clone https://github.com/galile0ff/bilet-satin-alma.git`<br>`cd bilet-satin-alma` |
-| 2️⃣ Docker İmajı Oluştur | Uygulama imajını hazırla | `docker compose --build` |
-| 3️⃣ Konteyneri Çalıştır | Uygulamayı başlat | `docker run -d -p 8000:80 bilet-satin-alma` |
-| 4️⃣ Aç | Tarayıcıda projeyi aç | [http://localhost:8000](http://localhost:8000) |
+| 2️⃣ Docker İmajı Oluştur | Uygulama imajını hazırla | `docker compose up --build` |
+| 3️⃣ Konteyneri Çalıştır | Uygulamayı başlat | `docker run -d -p 3000 bilet-satin-alma` |
+| 4️⃣ Aç | Tarayıcıda projeyi aç | [http://localhost:3000](http://localhost:3000) |
 
 > 🔹 Test kullanıcılarıyla giriş yaparak tüm rolleri deneyebilirsiniz.
 
