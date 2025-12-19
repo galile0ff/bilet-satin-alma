@@ -75,7 +75,7 @@ Online otobüs bileti satın alma ve yönetim uygulaması. Kullanıcılar bilet 
 
 ---
 
-## Star History
+## 📈 Star History
 
 <a href="https://www.star-history.com/#galile0ff/bilet-satin-alma&type=date&legend=top-left">
  <picture>
@@ -92,3 +92,7 @@ Online otobüs bileti satın alma ve yönetim uygulaması. Kullanıcılar bilet 
 - Test hesapları önceden hazırlanmıştır.
 
 ---
+
+<div align="center">
+Developed with ☕ by <a href="https://github.com/galile0ff">galile0ff</a>
+</div>
